@@ -1,5 +1,5 @@
 {
-  description = "insignia – Nix Darwin + Home-Manager configuration";
+  description = "Glassy – Nix Darwin + Home-Manager configuration";
 
   ##############################################################################
   # ─── INPUTS ─────────────────────────────────────────────────────────────────
@@ -25,8 +25,8 @@
   outputs = { self, nixpkgs, nix-darwin, home-manager, ... }@inputs:
     let
       # Host & user data ­– adjust if you rename the machine or account
-      hostName = "insignia";
-      userName = "heyglassy";
+      hostName = <hostname>;
+      userName = <username>;
       system   = "aarch64-darwin";        # or "x86_64-darwin" for Intel Macs
 
       # Import the desired nixpkgs for this system
