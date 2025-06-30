@@ -58,6 +58,11 @@
           security.pam.services.sudo_local.touchIdAuth = true;
           system.keyboard.enableKeyMapping = true;
           system.keyboard.swapLeftCtrlAndFn = true;
+          system.defaults.dock = {
+            autohide = true;
+            tilesize = 48;
+            persistent-apps = [];
+          };
 
           # User account recognised by nix-darwin (not strictly required,
           # but convenient if you ever build Nix on a fresh macOS install).
@@ -130,11 +135,8 @@
             programs.ssh = {
               enable = true;
               extraConfig = ''
-                Host *
-                  IgnoreUnknown UseKeychain
-                  UseKeychain yes
-                  IdentityAgent "~/.1password/agent.sock"   # 1Password -> SSH agent
-                  AddKeysToAgent yes
+              Host *
+                IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
               '';
             };
             
