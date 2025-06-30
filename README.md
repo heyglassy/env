@@ -117,3 +117,5 @@ darwin-rebuild changelog --flake .#insignia
 ## References
 
 [Setting up Nix on macOS](https://nixcademy.com/posts/nix-on-macos/)
+[NixOS Package Search](https://search.nixos.org/packages?channel=unstable&show=go&from=0&size=1&sort=relevance&type=packages&query=go)
+[Nix Darwin Configuration Options](https://nix-darwin.github.io/nix-darwin/manual/)
