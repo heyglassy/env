@@ -45,6 +45,14 @@ nix run "nixpkgs#hello"   # prints "Hello, world!"
 git clone <repo>
 cd <repo>
 
+# get userName
+whoami
+
+# get hostName
+scutil --get ComputerName 2>/dev/null \
+         || scutil --get HostName 2>/dev/null \
+         || hostname
+
 # FIRST and only manual build
 darwin-rebuild switch --flake .#<hostname / laptop name>
 ```
