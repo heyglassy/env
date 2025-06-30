@@ -12,5 +12,8 @@ activate :
 doctor :
     darwin-rebuild doctor
 
+shells:
+    sudo sh -c 'echo "/run/current-system/sw/bin/bash" >> /etc/shells'
+
 switch:
     darwin-rebuild switch --flake .#{{host}}

@@ -55,8 +55,8 @@ scutil --get ComputerName 2>/dev/null \
 
 nix run nix-darwin -- switch --flake .
 
-# FIRST and only manual build
-darwin-rebuild switch --flake .#<hostname / laptop name>
+just shells # to setup the shells
+chsh -s /run/current-system/sw/bin/bash # has to be run manually for some reason
 ```
 
 What the bootstrap does:
