@@ -47,6 +47,7 @@
           system.stateVersion = 6;
           networking.hostName = hostName;
           security.pam.services.sudo_local.touchIdAuth = true;
+          system.keyboard.swapLeftCtrlAndFn = true;
 
           # User account recognised by nix-darwin (not strictly required,
           # but convenient if you ever build Nix on a fresh macOS install).
@@ -60,6 +61,23 @@
         }
         {
           environment.systemPackages = with pkgs; [ gnupg pinentry_mac ];
+        }
+        {
+          system.primaryUser = userName;   # userName is the let-binding at the top
+          # Tell nix-darwin to bootstrap Homebrew and use it
+          homebrew = {
+            enable = true;
+
+            # Optional but nice: keep Homebrew itself up-to-date and
+            # remove orphaned casks/brews automatically on each switch
+            onActivation = {
+              autoUpdate = true;  # `brew update`
+              cleanup = "zap";    # or "uninstall" if you prefer
+            };
+
+            taps = [ "homebrew/cask" ];      # cask repo is needed for Edge
+            casks = [ ];    # ← this actually installs Edge
+          };
         }
 
         #################################################
@@ -92,7 +110,7 @@
             };
 
             programs.bash = {
-              enable              = true;          # activates Home-Manager’s Bash module
+              enable              = true;          # activates Home-Manager's Bash module
               package             = pkgs.bashInteractive;  # this is Bash 5.2 from nixpkgs
             };
 
