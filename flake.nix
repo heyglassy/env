@@ -80,7 +80,7 @@
             };
 
             taps = [ "homebrew/cask" ]; # cask repo is needed for Edge
-            casks = [ "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" ];                 # ← this actually installs Edge
+            casks = [ "arc" "1password" "legcord" "cursor" "ghostty" ];                 # ← this actually installs Edge
           };
         }
 
@@ -105,6 +105,8 @@
               homeDirectory = "/Users/${userName}";
               stateVersion = "23.11";
             };
+            
+            programs.ssh.enable  = false;
 
             programs.git = {
               enable = true;
