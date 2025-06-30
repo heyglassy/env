@@ -53,6 +53,8 @@ scutil --get ComputerName 2>/dev/null \
          || scutil --get HostName 2>/dev/null \
          || hostname
 
+nix run nix-darwin -- switch --flake .
+
 # FIRST and only manual build
 darwin-rebuild switch --flake .#<hostname / laptop name>
 ```
