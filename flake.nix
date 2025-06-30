@@ -91,7 +91,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ gnupg pinentry_mac just bun fnm ];
+          environment.systemPackages = with pkgs; [ gnupg pinentry_mac just bun fnm wget ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
@@ -106,8 +106,8 @@
               cleanup = "zap";   # or "uninstall" if you prefer
             };
 
-            brews = [ "pscale" "go@1.24" ];
-
+            brews = [ "pscale" "go@1.24" "atlas" "temporalio/brew/tcld" ];
+            taps = ["temporalio/brew"];
             casks = [ "orbstack" "slack" "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" "rectangle" "flux-app" "rescuetime" ];
           };
         }
@@ -174,6 +174,8 @@
               package = pkgs.bashInteractive;   # this is Bash 5.2 from nixpkgs
               initExtra = ''
                 eval "$(fnm env --use-on-cd --shell bash)"
+                eval "$(/opt/homebrew/bin/brew shellenv)"
+                export PATH="$HOME/go/bin:$PATH"
               '';
             };
 
