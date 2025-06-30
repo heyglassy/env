@@ -12,6 +12,12 @@
     nix-darwin.url = "github:LnL7/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
+    nix-homebrew = {
+      url = "github:zhaofengli/nix-homebrew";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
+
     # Home-Manager
     home-manager = {
       url = "github:nix-community/home-manager";
@@ -22,7 +28,7 @@
   ##############################################################################
   # ─── OUTPUTS ────────────────────────────────────────────────────────────────
   ##############################################################################
-  outputs = { self, nixpkgs, nix-darwin, home-manager, ... }@inputs:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, nix-homebrew, ... }@inputs:
     let
       # Host & user data – adjust if you rename the machine or account
       # hostName = <hostname>;
@@ -63,6 +69,22 @@
           # Miscellaneous macOS-specific settings go here …
           # services = { ... };
         }
+        nix-homebrew.darwinModules.nix-homebrew
+        {
+          nix-homebrew = {
+            # Install Homebrew under the default prefix
+            enable = true;
+
+            # Apple Silicon Only: Also install Homebrew under the default Intel prefix for Rosetta 2
+            enableRosetta = true;
+
+            # User owning the Homebrew prefix
+            user = userName;
+
+            # Automatically migrate existing Homebrew installations
+            autoMigrate = true;
+          };
+        }
         {
           environment.systemPackages = with pkgs; [ gnupg pinentry_mac just ];
         }
@@ -79,7 +101,6 @@
               cleanup = "zap";   # or "uninstall" if you prefer
             };
 
-            taps = [ "homebrew/cask" ]; # cask repo is needed for Edge
             casks = [ "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" ];
           };
         }
