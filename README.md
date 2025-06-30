@@ -113,3 +113,7 @@ just switch
 # See the changelog between current and next nix-darwin release
 darwin-rebuild changelog --flake .#insignia
 ```
+
+## References
+
+[Setting up Nix on macOS](https://nixcademy.com/posts/nix-on-macos/)
