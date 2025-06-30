@@ -145,7 +145,7 @@
               extraConfig = {
                 user.name = "Christian Glassiognon";
                 user.email = "63924603+heyglassy@users.noreply.github.com";
-                user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILO80lHtITf+AgJgfNSVe20l5dwrv9clt9M1dVHZ7W6A";
+                user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILqCTNtIYHIsPxLRSGPQgEN4cy8YGPVod8E17rwuQiKb";
 
                 commit.gpgSign = true;
                 tag.gpgSign = true;
