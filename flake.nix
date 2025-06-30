@@ -105,9 +105,18 @@
               homeDirectory = "/Users/${userName}";
               stateVersion = "23.11";
             };
-            
-            programs.ssh.enable  = false;
 
+            programs.ssh = {
+              enable = true;
+              extraConfig = ''
+                Host *
+                  IgnoreUnknown UseKeychain
+                  UseKeychain yes
+                  IdentityAgent "~/.1password/agent.sock"   # 1Password -> SSH agent
+                  AddKeysToAgent yes
+              '';
+            };
+            
             programs.git = {
               enable = true;
               package = pkgs.gitFull; # Git ≥ 2.34 is required for SSH signing
@@ -117,8 +126,7 @@
                   "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILO80lHtITf+AgJgfNSVe20l5dwrv9clt9M1dVHZ7W6A";
 
                 gpg.format = "ssh";
-                gpg."ssh".program =
-                  "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+
 
                 commit.gpgsign = true;
               };
