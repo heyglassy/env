@@ -91,7 +91,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ gnupg pinentry_mac just ];
+          environment.systemPackages = with pkgs; [ gnupg pinentry_mac just bun fnm ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
@@ -106,7 +106,9 @@
               cleanup = "zap";   # or "uninstall" if you prefer
             };
 
-            casks = [ "slack" "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" "rectangle" "flux-app" "rescuetime" ];
+            brews = [ "pscale" "go@1.24" ];
+
+            casks = [ "orbstack" "slack" "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" "rectangle" "flux-app" "rescuetime" ];
           };
         }
 
@@ -170,6 +172,9 @@
             programs.bash = {
               enable = true;                    # activates Home-Manager's Bash module
               package = pkgs.bashInteractive;   # this is Bash 5.2 from nixpkgs
+              initExtra = ''
+                eval "$(fnm env --use-on-cd --shell bash)"
+              '';
             };
 
             programs.starship = {
