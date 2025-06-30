@@ -101,7 +101,7 @@
               cleanup = "zap";   # or "uninstall" if you prefer
             };
 
-            casks = [ "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" ];
+            casks = [ "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" "rectangle" "flux-app" "rescuetime" ];
           };
         }
 
