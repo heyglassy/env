@@ -148,10 +148,9 @@
                 user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILqCTNtIYHIsPxLRSGPQgEN4cy8YGPVod8E17rwuQiKb";
 
                 commit.gpgSign = true;
-                tag.gpgSign = true;
 
                 gpg.format = "ssh";
-                gpg.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+                gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
 
                 push.default = "simple";
                 branch.autoSetupMerge = "simple";
