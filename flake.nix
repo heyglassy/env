@@ -108,7 +108,7 @@
 
             brews = [ "pscale" "go@1.24" "temporalio/brew/tcld" ];
             taps = ["temporalio/brew" ];
-            casks = [ "orbstack" "slack" "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" "rectangle" "flux-app" "rescuetime" ];
+            casks = [ "ngrok" "orbstack" "slack" "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" "rectangle" "flux-app" "rescuetime" ];
           };
         }
 

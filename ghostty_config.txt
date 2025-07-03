@@ -30,3 +30,5 @@ keybind = super+r=reload_config
 
 window-save-state = always
 adjust-cell-height = 25%
+
+keybind = "shift+enter=text:\n"
