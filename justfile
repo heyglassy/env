@@ -17,6 +17,10 @@ shells:
 
 switch:
     darwin-rebuild switch --flake .#{{host}}
+    OP_ACCOUNT=my.1password.com bun ./scripts/post_switch.ts
+
+test:
+    op read "op://Personal/GitHub/public key"
 
 kbd:
     @echo "Attempting to quit Raycast..."

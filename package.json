@@ -1,0 +1,12 @@
+{
+  "name": "nix",
+  "module": "scripts/post_switch.ts",
+  "type": "module",
+  "private": true,
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  }
+}

@@ -53,6 +53,7 @@
         #################################################
         {
           nix.enable = false;
+          nix.settings.allowed-users = [ userName ];
           system.stateVersion = 6;
           networking.hostName = hostName;
           security.pam.services.sudo_local.touchIdAuth = true;
@@ -68,7 +69,7 @@
           # but convenient if you ever build Nix on a fresh macOS install).
           users.users.${userName} = {
             home = "/Users/${userName}";
-            shell = pkgs.zsh;
+            shell = pkgs.bashInteractive;
           };
 
           # Miscellaneous macOS-specific settings go here …
@@ -98,6 +99,7 @@
           # Tell nix-darwin to bootstrap Homebrew and use it
           homebrew = {
             enable = true;
+            user = userName;
 
             # Optional but nice: keep Homebrew itself up-to-date and
             # remove orphaned casks/brews automatically on each switch
@@ -145,11 +147,9 @@
             programs.git = {
               enable = true;
               package = pkgs.gitFull; # Git ≥ 2.34 is required for SSH signing
-
               extraConfig = {
                 user.name = "Christian Glassiognon";
                 user.email = "63924603+heyglassy@users.noreply.github.com";
-                user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAILqCTNtIYHIsPxLRSGPQgEN4cy8YGPVod8E17rwuQiKb";
 
                 commit.gpgSign = true;
 
@@ -179,6 +179,7 @@
                 eval "$(fnm env --use-on-cd --shell bash)"
                 eval "$(/opt/homebrew/bin/brew shellenv)"
                 export PATH="/Users/carnegie/go/bin:$PATH"
+                export PATH="/Users/carnegie/kernel/packages/api/bin:$PATH"
               '';
             };
 
