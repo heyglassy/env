@@ -1,7 +1,5 @@
 #!/usr/bin/env bun
 
-import { existsSync } from "fs";
-import { spawnSync } from "child_process";
 import { $ } from "bun";
 
 // Ensure all console output is written directly to stdout/stderr
@@ -52,34 +50,43 @@ function err(msg: string) {
   console.error(`[post-switch][ERROR] ${msg}`);
 }
 
-function which(cmd: string): string | null {
-  const pathEnv = process.env.PATH || "";
-  for (const p of pathEnv.split(":")) {
-    const full = `${p}/${cmd}`;
-    if (existsSync(full)) return full;
-  }
-  return null;
-}
-
-function run(
-  cmd: string,
-  args: string[],
-  opts?: { env?: NodeJS.ProcessEnv; stdio?: any }
-): { status: number; stdout: string; stderr: string } {
-  const result = spawnSync(cmd, args, {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-    ...opts,
-  });
-  return {
-    status: result.status ?? 0,
-    stdout: result.stdout || "",
-    stderr: result.stderr || "",
-  };
-}
-
 async function sleep(ms: number) {
   return new Promise((res) => setTimeout(res, ms));
+}
+
+// Generic async retry helper for commands that return an object with exitCode/text
+async function retryAsync(
+  attempts: number,
+  fn: () => Promise<{ exitCode: number; text(): string }>,
+  description?: string
+): Promise<boolean> {
+  let delayMs = 250;
+  for (let i = 1; i <= attempts; i++) {
+    const res = await fn();
+    if (res.exitCode === 0) return true;
+    if (i === attempts) break;
+    if (description) {
+      warn(
+        `${description} attempt ${i} failed (exit ${res.exitCode}). Retrying in ${delayMs}ms`
+      );
+    }
+    await sleep(delayMs);
+    delayMs = Math.min(delayMs * 2, 2000);
+  }
+  return false;
+}
+
+async function waitForProcessToDisappear(
+  processName: string,
+  timeoutMs: number
+): Promise<boolean> {
+  const start = Date.now();
+  for (;;) {
+    const r = await $`pgrep -x ${processName}`.nothrow();
+    if (r.exitCode !== 0) return true;
+    if (Date.now() - start >= timeoutMs) return false;
+    await sleep(100);
+  }
 }
 
 async function retry<T>(
@@ -105,9 +112,10 @@ async function retry<T>(
 function getUserContext() {
   const userName = process.env.SUDO_USER || process.env.USER || "";
   const userHome = userName ? `/Users/${userName}` : process.env.HOME || "";
-  const uidRes = run("id", ["-u", userName]);
   const uid =
-    uidRes.status === 0 ? parseInt(uidRes.stdout.trim(), 10) : undefined;
+    typeof (process as any).getuid === "function"
+      ? (process as any).getuid()
+      : undefined;
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     HOME: userHome,
@@ -118,27 +126,6 @@ function getUserContext() {
   };
   return { userName, userHome, uid, env };
 }
-
-function runAsUser(
-  cmd: string,
-  args: string[],
-  env: NodeJS.ProcessEnv,
-  uid?: number
-): { status: number; stdout: string; stderr: string } {
-  const isRoot = (() => {
-    try {
-      return typeof process.getuid === "function" && process.getuid() === 0;
-    } catch {
-      return false;
-    }
-  })();
-  if (isRoot && uid && !Number.isNaN(uid)) {
-    return run("launchctl", ["asuser", String(uid), cmd, ...args], { env });
-  }
-  return run(cmd, args, { env });
-}
-
-// Raycast CLI verification removed
 
 async function configureGitSigningFrom1Password() {
   const { userName, env: userEnv } = getUserContext();
@@ -190,12 +177,6 @@ async function configureGitSigningFrom1Password() {
 }
 
 async function isOnePasswordSignedIn(): Promise<boolean> {
-  // Ensure the 1Password CLI exists first
-  if (!which("op")) {
-    warn("1Password CLI (op) not found in PATH. Skipping 1Password steps.");
-    return false;
-  }
-
   const { userName } = getUserContext();
 
   const whoamiResult =
@@ -219,11 +200,12 @@ async function isOnePasswordSignedIn(): Promise<boolean> {
 async function main() {
   try {
     // Restart Raycast independently
-    // await restartRaycastApp();
     // Configure Git signing from 1Password independently (best-effort)
     if (await isOnePasswordSignedIn()) {
       await configureGitSigningFrom1Password();
     }
+
+    await restartRaycastApp();
   } catch (e) {
     err(String(e));
     process.exitCode = 1;
@@ -233,23 +215,28 @@ async function main() {
 main();
 
 async function restartRaycastApp() {
-  const { env: userEnv, uid } = getUserContext();
   log("Attempting to quit Raycast...");
   // Send quit signal. Ignore error if it's not running.
-  run("pkill", ["-x", "Raycast"]);
+  const quitOk = await retryAsync(
+    5,
+    () => $`pkill -x Raycast`.nothrow(),
+    "Quit Raycast"
+  );
+  if (!quitOk) warn("Failed to send quit to Raycast after retries");
 
   log("Waiting for Raycast to exit completely...");
-  for (;;) {
-    const r = run("pgrep", ["-x", "Raycast"]);
-    if (r.status !== 0) break;
-    await sleep(100);
+  const exited = await waitForProcessToDisappear("Raycast", 10_000);
+  if (!exited) {
+    warn("Raycast did not exit in time; forcing termination...");
+    await $`pkill -9 -x Raycast`.nothrow();
+    await waitForProcessToDisappear("Raycast", 5_000);
   }
 
   log("Restarting Raycast...");
-  const opened = runAsUser("open", ["-a", "Raycast"], userEnv, uid);
-  if (opened.status === 0) {
+  const opened = await $`open -a "Raycast"`.nothrow();
+  if (opened.exitCode === 0) {
     log("Raycast has been restarted.");
   } else {
-    warn(`Failed to restart Raycast: ${opened.stderr.trim()}`);
+    warn(`Failed to restart Raycast: ${opened.text()}`);
   }
 }
