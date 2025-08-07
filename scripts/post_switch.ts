@@ -4,6 +4,44 @@ import { existsSync } from "fs";
 import { spawnSync } from "child_process";
 import { $ } from "bun";
 
+// Ensure all console output is written directly to stdout/stderr
+function stringifyConsoleArg(arg: unknown): string {
+  if (typeof arg === "string") return arg;
+  try {
+    return JSON.stringify(arg, null, 2);
+  } catch {
+    return String(arg);
+  }
+}
+
+function writeConsoleLine(stream: NodeJS.WriteStream, parts: unknown[]): void {
+  const line = parts.map(stringifyConsoleArg).join(" ");
+  try {
+    stream.write(line + "\n");
+  } catch {
+    // ignore
+  }
+}
+
+console.log = (...args: unknown[]) => {
+  writeConsoleLine(process.stdout, args);
+};
+console.warn = (...args: unknown[]) => {
+  writeConsoleLine(process.stderr, args);
+};
+console.error = (...args: unknown[]) => {
+  writeConsoleLine(process.stderr, args);
+};
+
+process.on("unhandledRejection", (reason) => {
+  console.error("[post-switch][UNHANDLED_REJECTION]", reason);
+  process.exitCode = 1;
+});
+process.on("uncaughtException", (error) => {
+  console.error("[post-switch][UNCAUGHT_EXCEPTION]", error);
+  process.exitCode = 1;
+});
+
 function log(msg: string) {
   console.log(`[post-switch] ${msg}`);
 }
@@ -117,7 +155,7 @@ async function configureGitSigningFrom1Password() {
   let pubkey = "";
   try {
     pubkey = (
-      await $`sudo -u carnegie -E op read "op://Personal/GitHub/public key"`.text()
+      await $`sudo -u ${userName} -E op read "op://Personal/GitHub/public key"`.text()
     ).trim();
     console.log(pubkey);
   } catch (e) {
@@ -151,12 +189,41 @@ async function configureGitSigningFrom1Password() {
   }
 }
 
+async function isOnePasswordSignedIn(): Promise<boolean> {
+  // Ensure the 1Password CLI exists first
+  if (!which("op")) {
+    warn("1Password CLI (op) not found in PATH. Skipping 1Password steps.");
+    return false;
+  }
+
+  const { userName } = getUserContext();
+
+  const whoamiResult =
+    await $`OP_ACCOUNT=my.1password.com sudo -u ${userName} -E op whoami --format json`.nothrow();
+
+  if (whoamiResult.exitCode === 1) {
+    const loginResult =
+      await $`OP_ACCOUNT=my.1password.com sudo -u ${userName} -E op signin`.nothrow();
+    if (loginResult.exitCode === 0) {
+      console.log("1Password login successful");
+      return true;
+    } else {
+      console.log("1Password login failed", loginResult.text());
+      return false;
+    }
+  }
+
+  return true;
+}
+
 async function main() {
   try {
     // Restart Raycast independently
     // await restartRaycastApp();
     // Configure Git signing from 1Password independently (best-effort)
-    await configureGitSigningFrom1Password();
+    if (await isOnePasswordSignedIn()) {
+      await configureGitSigningFrom1Password();
+    }
   } catch (e) {
     err(String(e));
     process.exitCode = 1;
