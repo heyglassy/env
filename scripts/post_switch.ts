@@ -214,21 +214,36 @@ async function main() {
 
 main();
 
+// Attempt to quit Raycast and report success based on whether the process
+// disappears, while keeping "|| true" so the command itself never throws.
+async function attemptQuitRaycast(): Promise<{
+  exitCode: number;
+  text(): string;
+}> {
+  await $`pkill -x Raycast || true`.nothrow();
+  // Give macOS a brief moment to deliver the signal
+  await sleep(150);
+  const check = await $`pgrep -x Raycast`.nothrow();
+  const success = check.exitCode !== 0; // non-zero means process not found
+  return {
+    exitCode: success ? 0 : 1,
+    text() {
+      return success ? "Raycast not running" : "Raycast still running";
+    },
+  };
+}
+
 async function restartRaycastApp() {
   log("Attempting to quit Raycast...");
   // Send quit signal. Ignore error if it's not running.
-  const quitOk = await retryAsync(
-    5,
-    () => $`pkill -x Raycast`.nothrow(),
-    "Quit Raycast"
-  );
+  const quitOk = await retryAsync(5, attemptQuitRaycast, "Quit Raycast");
   if (!quitOk) warn("Failed to send quit to Raycast after retries");
 
   log("Waiting for Raycast to exit completely...");
   const exited = await waitForProcessToDisappear("Raycast", 10_000);
   if (!exited) {
     warn("Raycast did not exit in time; forcing termination...");
-    await $`pkill -9 -x Raycast`.nothrow();
+    await $`pkill -x Raycast || true`.nothrow();
     await waitForProcessToDisappear("Raycast", 5_000);
   }
 
