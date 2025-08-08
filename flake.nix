@@ -92,7 +92,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ gnupg pinentry_mac just bun fnm wget ];
+          environment.systemPackages = with pkgs; [ gnupg pinentry_mac just bun fnm wget uv ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
@@ -110,7 +110,7 @@
 
             brews = [ "pscale" "go@1.24" "temporalio/brew/tcld" "withgraphite/tap/graphite" "sst/tap/opencode" ];
             taps = ["temporalio/brew" "withgraphite/tap" ];
-            casks = [ "ngrok" "1password-cli" "tailscale" "orbstack" "slack" "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" "rectangle" "flux-app" "rescuetime" ];
+            casks = [ "ngrok" "1password-cli" "tailscale" "orbstack" "slack" "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" "rectangle" "flux-app" "rescuetime" "cleanshot" ];
           };
         }
 
