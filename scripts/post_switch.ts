@@ -205,7 +205,7 @@ async function main() {
       await configureGitSigningFrom1Password();
     }
 
-    await restartRaycastApp();
+    // await restartRaycastApp();
   } catch (e) {
     err(String(e));
     process.exitCode = 1;
@@ -214,29 +214,14 @@ async function main() {
 
 main();
 
-// Attempt to quit Raycast and report success based on whether the process
-// disappears, while keeping "|| true" so the command itself never throws.
-async function attemptQuitRaycast(): Promise<{
-  exitCode: number;
-  text(): string;
-}> {
-  await $`pkill -x Raycast || true`.nothrow();
-  // Give macOS a brief moment to deliver the signal
-  await sleep(150);
-  const check = await $`pgrep -x Raycast`.nothrow();
-  const success = check.exitCode !== 0; // non-zero means process not found
-  return {
-    exitCode: success ? 0 : 1,
-    text() {
-      return success ? "Raycast not running" : "Raycast still running";
-    },
-  };
-}
-
 async function restartRaycastApp() {
   log("Attempting to quit Raycast...");
   // Send quit signal. Ignore error if it's not running.
-  const quitOk = await retryAsync(5, attemptQuitRaycast, "Quit Raycast");
+  const quitOk = await retryAsync(
+    5,
+    () => $`pkill -x Raycast || true`.nothrow(),
+    "Quit Raycast"
+  );
   if (!quitOk) warn("Failed to send quit to Raycast after retries");
 
   log("Waiting for Raycast to exit completely...");
