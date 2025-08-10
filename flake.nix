@@ -108,9 +108,42 @@
               cleanup = "zap";   # or "uninstall" if you prefer
             };
 
-            brews = [ "pscale" "go@1.24" "temporalio/brew/tcld" "withgraphite/tap/graphite" "sst/tap/opencode" ];
-            taps = ["temporalio/brew" "withgraphite/tap" ];
-            casks = [ "ngrok" "1password-cli" "tailscale" "orbstack" "slack" "arc" "1password" "legcord" "cursor" "ghostty" "raycast" "beeper" "superhuman" "figma" "notion" "hiddenbar" "cloudflare-warp" "notion-calendar" "rectangle" "flux-app" "rescuetime" "cleanshot" ];
+            brews = [
+              "pscale"
+              "go@1.24"
+              "temporalio/brew/tcld"
+              "withgraphite/tap/graphite"
+              "sst/tap/opencode"
+              "cocoapods"
+            ];
+            taps = [
+              "temporalio/brew"
+              "withgraphite/tap"
+            ];
+            casks = [
+              "ngrok"
+              "1password-cli"
+              "tailscale"
+              "orbstack"
+              "slack"
+              "arc"
+              "1password"
+              "legcord"
+              "cursor"
+              "ghostty"
+              "raycast"
+              "beeper"
+              "superhuman"
+              "figma"
+              "notion"
+              "hiddenbar"
+              "cloudflare-warp"
+              "notion-calendar"
+              "rectangle"
+              "flux-app"
+              "rescuetime"
+              "cleanshot"
+            ];
           };
         }
 
@@ -175,6 +208,7 @@
               initExtra = ''
                 export EDITOR=vim
                 export VISUAL=vim
+                export PATH="/opt/homebrew/bin/pod:$PATH"
 
                 eval "$(fnm env --use-on-cd --shell bash)"
                 eval "$(/opt/homebrew/bin/brew shellenv)"
@@ -182,6 +216,7 @@
                 export PATH="/Users/carnegie/kernel/packages/api/bin:$PATH"
               '';
             };
+            # xdg.configFile."clang".source = ./clang;
 
             programs.starship = {
               enable = true;
