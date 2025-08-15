@@ -3,7 +3,7 @@ host := `scutil --get ComputerName 2>/dev/null \
          || scutil --get HostName 2>/dev/null \
          || hostname`
 
-user := `id -un`
+user := `if [ -n "$SUDO_USER" ]; then printf "%s" "$SUDO_USER"; else id -un; fi`
 
 update :
     nix flake update
