@@ -5,11 +5,13 @@ host := `scutil --get ComputerName 2>/dev/null \
 
 user := `if [ -n "$SUDO_USER" ]; then printf "%s" "$SUDO_USER"; else id -un; fi`
 
+cwd := `pwd`
+
 update :
     nix flake update
 
 ghostty-title:
-    sed -i '' -E "s/^title[[:space:]]*=[[:space:]]*.*/title = {{host}}/" /Users/carnegie/nix/ghostty_config.txt
+    sed -i '' -E "s/^title[[:space:]]*=[[:space:]]*.*/title = {{host}}/" {{cwd}}/ghostty_config.txt
 
 activate :
     darwin-rebuild activate
