@@ -3,8 +3,13 @@ host := `scutil --get ComputerName 2>/dev/null \
          || scutil --get HostName 2>/dev/null \
          || hostname`
 
+user := `if [ -n "$SUDO_USER" ]; then printf "%s" "$SUDO_USER"; else id -un; fi`
+
 update :
     nix flake update
+
+ghostty-title:
+    sed -i '' -E "s/^title[[:space:]]*=[[:space:]]*.*/title = {{host}}/" /Users/carnegie/nix/ghostty_config.txt
 
 activate :
     darwin-rebuild activate
@@ -15,7 +20,10 @@ doctor :
 shells:
     sudo sh -c 'echo "/run/current-system/sw/bin/bash" >> /etc/shells'
 
-switch:
+config: ghostty-title
+    printf '%s\n' '{' "    hostName = \"{{host}}\";" "    userName = \"{{user}}\";" '}' > configuration.nix
+
+switch: config
     darwin-rebuild switch --flake .#{{host}}
     bun ./scripts/post_switch.ts
     just kbd

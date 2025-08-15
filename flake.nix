@@ -30,11 +30,9 @@
   ##############################################################################
   outputs = { self, nixpkgs, nix-darwin, home-manager, nix-homebrew, ... }@inputs:
     let
-      # Host & user data – adjust if you rename the machine or account
-      # hostName = <hostname>;
-      # userName = <username>;
-      hostName = "insignia";
-      userName = "heyglassy";
+      # Host & user data – adjust in `configuration.nix`
+      inherit (import ./configuration.nix) hostName userName;
+
       system = "aarch64-darwin"; # or "x86_64-darwin" for Intel Macs
 
       # Import the desired nixpkgs for this system
