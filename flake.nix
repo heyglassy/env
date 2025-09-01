@@ -113,6 +113,7 @@
               "withgraphite/tap/graphite"
               "sst/tap/opencode"
               "cocoapods"
+              "gh"
             ];
             taps = [
               "temporalio/brew"
