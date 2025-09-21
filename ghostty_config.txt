@@ -1,4 +1,4 @@
-title = _template_
+title = insignia
 
 font-family = Berkeley Mono
 confirm-close-surface = false
@@ -6,7 +6,7 @@ copy-on-select = clipboard
 macos-titlebar-style = tabs
 window-width = 100000
 window-height = 100000
-theme = dark:Ghostty Default StyleDark,light:catppuccin-latte
+theme = dark:Ghostty Default Style Dark,light:catppuccin-latte
 
 mouse-hide-while-typing = true
 scrollback-limit = 1000000
