@@ -114,6 +114,7 @@
               "sst/tap/opencode"
               "cocoapods"
               "gh"
+              "fastlane"
             ];
             taps = [
               "temporalio/brew"
