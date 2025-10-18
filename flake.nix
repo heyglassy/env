@@ -90,7 +90,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ gnupg pinentry_mac just bun fnm wget uv ];
+          environment.systemPackages = with pkgs; [ gnupg pinentry_mac just bun fnm wget uv rustup ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
