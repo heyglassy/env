@@ -115,6 +115,10 @@
               "cocoapods"
               "gh"
               "fastlane"
+              "bufbuild/buf/buf"
+              "protobuf"
+              "ripgrep"
+              "yt-dlp"
             ];
             taps = [
               "temporalio/brew"
@@ -215,6 +219,7 @@
                 eval "$(/opt/homebrew/bin/brew shellenv)"
                 export PATH="/Users/carnegie/go/bin:$PATH"
                 export PATH="/Users/carnegie/kernel/packages/api/bin:$PATH"
+                export PATH="/Users/heyglassy/.bun/bin:$PATH"
               '';
             };
             # xdg.configFile."clang".source = ./clang;
