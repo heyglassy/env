@@ -90,7 +90,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ gnupg pinentry_mac just bun fnm wget uv rustup ];
+          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
@@ -111,7 +111,6 @@
               "go@1.24"
               "temporalio/brew/tcld"
               "withgraphite/tap/graphite"
-              "sst/tap/opencode"
               "cocoapods"
               "gh"
               "fastlane"
@@ -119,6 +118,7 @@
               "protobuf"
               "ripgrep"
               "yt-dlp"
+              "ffmpeg"
             ];
             taps = [
               "temporalio/brew"
@@ -147,6 +147,7 @@
               "flux-app"
               "rescuetime"
               "cleanshot"
+              "macfuse"
             ];
           };
         }
@@ -166,11 +167,44 @@
         # Per-user Home-Manager configuration
         #################################################
         {
-          # Enable home-manager for the user
-          home-manager.users.${userName} = { pkgs, ... }: {
+          # Enable home-manager for the use
+          home-manager.users.${userName} = { pkgs, lib, ... }: {
             home = {
               homeDirectory = "/Users/${userName}";
               stateVersion = "23.11";
+
+              # Install GNU coreutils and findutils for Home Manager compatibility
+              packages = with pkgs; [
+                coreutils   # Provides GNU readlink with -e flag
+                findutils   # Provides GNU find with -printf support
+              ];
+
+              sessionVariables = {
+                PATH = "${pkgs.coreutils}/bin:$PATH";
+              };
+
+              # Override PATH before linkGeneration to ensure GNU tools are used
+              activation.setupGnuTools = lib.hm.dag.entryBefore [ "linkGeneration" ] ''
+                PATH="${pkgs.coreutils}/bin:${pkgs.findutils}/bin:$PATH"
+              '';
+
+              # Install global bun packages on activation
+              activation.installBunGlobalPackages = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                ${pkgs.bun}/bin/bun install -g opencode-ai https://github.com/tobi/qmd
+              '';
+
+              # Install TigrisFS for macOS
+              activation.installTigrisFS = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                if ! command -v tigrisfs &> /dev/null; then
+                  echo "Installing TigrisFS for macOS..."
+                  export PATH="${pkgs.curl}/bin:${pkgs.gnutar}/bin:${pkgs.gzip}/bin:/usr/bin:$PATH"
+                  export VERIFY_CHECKSUM=false
+                  export INSTALL_DIR="$HOME/.local/bin"
+                  mkdir -p "$INSTALL_DIR"
+                  ${pkgs.curl}/bin/curl -sSL https://raw.githubusercontent.com/tigrisdata/tigrisfs/refs/heads/main/install.sh | ${pkgs.bashInteractive}/bin/bash
+                  echo "TigrisFS installed to $INSTALL_DIR/tigrisfs"
+                fi
+              '';
             };
 
             programs.ssh = {
@@ -220,6 +254,7 @@
                 export PATH="/Users/carnegie/go/bin:$PATH"
                 export PATH="/Users/carnegie/kernel/packages/api/bin:$PATH"
                 export PATH="/Users/heyglassy/.bun/bin:$PATH"
+                export PATH="$HOME/.local/bin:$PATH"
               '';
             };
             # xdg.configFile."clang".source = ./clang;
