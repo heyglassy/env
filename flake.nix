@@ -90,7 +90,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup ];
+          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
@@ -261,6 +261,11 @@
 
             programs.starship = {
               enable = true;
+            };
+
+            programs.direnv = {
+              enable = true;
+              nix-direnv.enable = true;
             };
             xdg.configFile."starship.toml".source = ./starship.toml;
 
