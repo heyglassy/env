@@ -240,6 +240,20 @@
               };
             };
 
+            programs.jujutsu = {
+              enable = true;
+              settings = {
+                user.name = "Christian Glassiognon";
+                user.email = "63924603+heyglassy@users.noreply.github.com";
+                signing = {
+                  backend = "ssh";
+                  key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC/qhn9neDAsXF7tbLp+sao9P1YFq5/2pTIo5L/I5FFU";
+                  behavior = "own";  # Auto-sign all commits you author
+                  backends.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
+                };
+              };
+            };
+
             programs.atuin = {
               enable = true;
               enableBashIntegration = false;  # We'll add our own with TTY check
