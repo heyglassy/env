@@ -234,6 +234,7 @@
 
             programs.atuin = {
               enable = true;
+              enableBashIntegration = false;  # We'll add our own with TTY check
               settings = {
                 auto_sync = true;
                 enter_accept = true;
@@ -255,6 +256,12 @@
                 export PATH="/Users/carnegie/kernel/packages/api/bin:$PATH"
                 export PATH="/Users/heyglassy/.bun/bin:$PATH"
                 export PATH="$HOME/.local/bin:$PATH"
+
+                # Atuin shell history - only init when stdin is a TTY
+                if [[ :$SHELLOPTS: =~ :(vi|emacs): ]] && [[ -t 0 ]]; then
+                  source "${pkgs.bash-preexec}/share/bash/bash-preexec.sh"
+                  eval "$(${pkgs.atuin}/bin/atuin init bash)"
+                fi
               '';
             };
             # xdg.configFile."clang".source = ./clang;
