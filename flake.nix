@@ -205,28 +205,39 @@
                   echo "TigrisFS installed to $INSTALL_DIR/tigrisfs"
                 fi
               '';
+
+              # Install ami CLI
+              activation.installAmi = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                if ! command -v ami &> /dev/null; then
+                  echo "Installing ami..."
+                  export PATH="${pkgs.curl}/bin:${pkgs.gnutar}/bin:${pkgs.gzip}/bin:/usr/bin:$PATH"
+                  mkdir -p "$HOME/.local/bin"
+                  ${pkgs.curl}/bin/curl -fsSL https://ami.dev/install | ${pkgs.bashInteractive}/bin/bash
+                  echo "ami installed"
+                fi
+              '';
             };
 
             programs.ssh = {
               enable = true;
-              extraConfig = ''
-              Host *
-                IdentityAgent "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
-              '';
+              enableDefaultConfig = false;
+              matchBlocks."*" = {
+                extraOptions = {
+                  IdentityAgent = "~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+                };
+              };
             };
             
             programs.git = {
               enable = true;
               package = pkgs.gitFull; # Git ≥ 2.34 is required for SSH signing
-              extraConfig = {
+              settings = {
                 user.name = "Christian Glassiognon";
                 user.email = "63924603+heyglassy@users.noreply.github.com";
-
+                user.signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIC/qhn9neDAsXF7tbLp+sao9P1YFq5/2pTIo5L/I5FFU";
                 commit.gpgSign = true;
-
                 gpg.format = "ssh";
                 gpg.ssh.program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign";
-
                 push.default = "simple";
                 branch.autoSetupMerge = "simple";
               };
@@ -255,7 +266,7 @@
                 export PATH="/Users/carnegie/go/bin:$PATH"
                 export PATH="/Users/carnegie/kernel/packages/api/bin:$PATH"
                 export PATH="/Users/heyglassy/.bun/bin:$PATH"
-                export PATH="$HOME/.local/bin:$PATH"
+                export PATH="$HOME/.local/bin:$HOME/.ami/bin:$PATH"
 
                 # Atuin shell history - only init when stdin is a TTY
                 if [[ :$SHELLOPTS: =~ :(vi|emacs): ]] && [[ -t 0 ]]; then
