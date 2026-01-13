@@ -20,12 +20,18 @@
       url = "github:nix-community/home-manager";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+    # QMD - Quick Markdown Search
+    qmd = {
+      url = "github:tobi/qmd";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   ##############################################################################
   # ─── OUTPUTS ────────────────────────────────────────────────────────────────
   ##############################################################################
-  outputs = { self, nixpkgs, nix-darwin, home-manager, nix-homebrew, ... }@inputs:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, nix-homebrew, qmd, ... }@inputs:
     let
       # Host & user data – adjust in `configuration.nix`
       inherit (import ./configuration.nix) hostName userName;
@@ -87,7 +93,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise ];
+          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise duckdb qmd.packages.${system}.default ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
@@ -187,7 +193,7 @@
 
               # Install global bun packages on activation
               activation.installBunGlobalPackages = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-                ${pkgs.bun}/bin/bun install -g opencode-ai https://github.com/tobi/qmd
+                ${pkgs.bun}/bin/bun install -g opencode-ai
               '';
 
               # Install TigrisFS for macOS
@@ -203,16 +209,6 @@
                 fi
               '';
 
-              # Install ami CLI
-              activation.installAmi = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-                if ! command -v ami &> /dev/null; then
-                  echo "Installing ami..."
-                  export PATH="${pkgs.curl}/bin:${pkgs.gnutar}/bin:${pkgs.gzip}/bin:/usr/bin:$PATH"
-                  mkdir -p "$HOME/.local/bin"
-                  ${pkgs.curl}/bin/curl -fsSL https://ami.dev/install | ${pkgs.bashInteractive}/bin/bash
-                  echo "ami installed"
-                fi
-              '';
             };
 
             programs.ssh = {
@@ -277,7 +273,7 @@
                 export PATH="/Users/carnegie/go/bin:$PATH"
                 export PATH="/Users/carnegie/kernel/packages/api/bin:$PATH"
                 export PATH="/Users/heyglassy/.bun/bin:$PATH"
-                export PATH="$HOME/.local/bin:$HOME/.ami/bin:$PATH"
+                export PATH="$HOME/.local/bin:$PATH"
 
                 # Atuin shell history - only init when stdin is a TTY
                 if [[ :$SHELLOPTS: =~ :(vi|emacs): ]] && [[ -t 0 ]]; then
