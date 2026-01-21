@@ -26,6 +26,8 @@
       url = "github:tobi/qmd";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+
+
   };
 
   ##############################################################################
@@ -93,7 +95,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise duckdb qmd.packages.${system}.default ];
+          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise duckdb qmd.packages.${system}.default zed-editor ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
@@ -263,6 +265,9 @@
             programs.bash = {
               enable = true;                    # activates Home-Manager's Bash module
               package = pkgs.bashInteractive;   # this is Bash 5.2 from nixpkgs
+              shellAliases = {
+                zed = "zeditor";
+              };
               initExtra = ''
                 export EDITOR=vim
                 export VISUAL=vim
