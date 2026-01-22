@@ -21,19 +21,12 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
-    # QMD - Quick Markdown Search
-    qmd = {
-      url = "github:tobi/qmd";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-
-
   };
 
   ##############################################################################
   # ─── OUTPUTS ────────────────────────────────────────────────────────────────
   ##############################################################################
-  outputs = { self, nixpkgs, nix-darwin, home-manager, nix-homebrew, qmd, ... }@inputs:
+  outputs = { self, nixpkgs, nix-darwin, home-manager, nix-homebrew, ... }@inputs:
     let
       # Host & user data – adjust in `configuration.nix`
       inherit (import ./configuration.nix) hostName userName;
@@ -95,7 +88,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise duckdb qmd.packages.${system}.default zed-editor ];
+          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise duckdb zed-editor ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
@@ -195,7 +188,7 @@
 
               # Install global bun packages on activation
               activation.installBunGlobalPackages = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-                ${pkgs.bun}/bin/bun install -g opencode-ai
+                ${pkgs.bun}/bin/bun install -g opencode-ai qmd
               '';
 
               # Install TigrisFS for macOS
@@ -208,6 +201,16 @@
                   mkdir -p "$INSTALL_DIR"
                   ${pkgs.curl}/bin/curl -sSL https://raw.githubusercontent.com/tigrisdata/tigrisfs/refs/heads/main/install.sh | ${pkgs.bashInteractive}/bin/bash
                   echo "TigrisFS installed to $INSTALL_DIR/tigrisfs"
+                fi
+              '';
+
+              # Install Claude Code using native installer
+              activation.installClaudeCode = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                if ! command -v claude &> /dev/null; then
+                  echo "Installing Claude Code..."
+                  export PATH="${pkgs.curl}/bin:${pkgs.gnutar}/bin:${pkgs.gzip}/bin:/usr/bin:$PATH"
+                  ${pkgs.curl}/bin/curl -fsSL https://claude.ai/install.sh | ${pkgs.bashInteractive}/bin/bash
+                  echo "Claude Code installed"
                 fi
               '';
 
