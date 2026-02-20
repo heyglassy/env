@@ -88,7 +88,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise duckdb zed-editor tmux ];
+          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise duckdb tmux ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
@@ -132,6 +132,7 @@
               "1password"
               "legcord"
               "cursor"
+              "zed"
               "ghostty"
               "raycast"
               "beeper"
@@ -187,9 +188,15 @@
                 PATH="${pkgs.coreutils}/bin:${pkgs.findutils}/bin:$PATH"
               '';
 
+              # Upgrade bun to latest version
+              activation.upgradeBun = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                ${pkgs.bun}/bin/bun upgrade
+              '';
+
               # Install global bun packages on activation
-              activation.installBunGlobalPackages = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-                ${pkgs.bun}/bin/bun install -g opencode-ai qmd
+              activation.installBunGlobalPackages = lib.hm.dag.entryAfter [ "upgradeBun" ] ''
+                export PATH="${pkgs.python3}/bin:$PATH"
+                ${pkgs.bun}/bin/bun install -g opencode-ai @tobilu/qmd
               '';
 
               # Install TigrisFS for macOS
@@ -295,9 +302,7 @@
             programs.bash = {
               enable = true;                    # activates Home-Manager's Bash module
               package = pkgs.bashInteractive;   # this is Bash 5.2 from nixpkgs
-              shellAliases = {
-                zed = "zeditor";
-              };
+              shellAliases = {};
               initExtra = ''
                 export EDITOR=vim
                 export VISUAL=vim
