@@ -88,7 +88,7 @@
           };
         }
         {
-          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise duckdb zed-editor ];
+          environment.systemPackages = with pkgs; [ coreutils gnupg pinentry_mac just bun fnm wget uv rustup direnv jujutsu jjui cmake mise duckdb zed-editor tmux ];
         }
         {
           system.primaryUser = userName; # userName is the let-binding at the top
@@ -177,6 +177,7 @@
                 findutils   # Provides GNU find with -printf support
               ];
 
+              sessionPath = [ "$HOME/.local/bin" ];
               sessionVariables = {
                 PATH = "${pkgs.coreutils}/bin:$PATH";
               };
@@ -212,6 +213,32 @@
                   ${pkgs.curl}/bin/curl -fsSL https://claude.ai/install.sh | ${pkgs.bashInteractive}/bin/bash
                   echo "Claude Code installed"
                 fi
+              '';
+
+              # Install glassarch (encrypted Tigris sync) from GitHub
+              activation.installGlassarch = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+                GLASSARCH_CACHE="$HOME/.local/share/glassarch-src"
+                INSTALL_DIR="$HOME/.local/bin"
+                REPO="git@github.com:heyglassy/glassynotesarchiver.git"
+                mkdir -p "$INSTALL_DIR"
+
+                # 1Password SSH agent for git auth
+                export SSH_AUTH_SOCK="$HOME/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock"
+
+                if [ -d "$GLASSARCH_CACHE/.git" ]; then
+                  echo "Updating glassarch from GitHub..."
+                  ${pkgs.gitFull}/bin/git -C "$GLASSARCH_CACHE" pull --ff-only || echo "glassarch: pull failed, building from cache"
+                else
+                  echo "Cloning glassarch from GitHub..."
+                  ${pkgs.gitFull}/bin/git clone "$REPO" "$GLASSARCH_CACHE"
+                fi
+
+                echo "Building glassarch..."
+                cd "$GLASSARCH_CACHE"
+                ${pkgs.bun}/bin/bun install --frozen-lockfile
+                ${pkgs.bun}/bin/bun build ./index.ts --compile --outfile "$INSTALL_DIR/glassarch"
+                chmod +x "$INSTALL_DIR/glassarch"
+                echo "glassarch installed to $INSTALL_DIR/glassarch"
               '';
 
             };
