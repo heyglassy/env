@@ -309,6 +309,7 @@
                 export PATH="/opt/homebrew/bin/pod:$PATH"
 
                 eval "$(fnm env --use-on-cd --shell bash)"
+                eval "$(mise activate bash)"
                 eval "$(/opt/homebrew/bin/brew shellenv)"
                 export PATH="/Users/carnegie/go/bin:$PATH"
                 export PATH="/Users/carnegie/kernel/packages/api/bin:$PATH"
