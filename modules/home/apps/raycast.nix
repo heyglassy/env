@@ -1,6 +1,35 @@
 { lib, ... }:
 
 {
+  home.activation.disableSpotlightHotkeys = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    tmp_plist="$(/usr/bin/mktemp)"
+    /usr/bin/defaults export com.apple.symbolichotkeys "$tmp_plist" 2>/dev/null || \
+      /usr/bin/plutil -create xml1 "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Delete :AppleSymbolicHotKeys:64" "$tmp_plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:64 dict" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:64:enabled bool false" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:64:value dict" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:64:value:type string standard" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:64:value:parameters array" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:64:value:parameters:0 integer 65535" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:64:value:parameters:1 integer 49" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:64:value:parameters:2 integer 1048576" "$tmp_plist"
+
+    /usr/libexec/PlistBuddy -c "Delete :AppleSymbolicHotKeys:65" "$tmp_plist" 2>/dev/null || true
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:65 dict" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:65:enabled bool false" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:65:value dict" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:65:value:type string standard" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:65:value:parameters array" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:65:value:parameters:0 integer 65535" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:65:value:parameters:1 integer 49" "$tmp_plist"
+    /usr/libexec/PlistBuddy -c "Add :AppleSymbolicHotKeys:65:value:parameters:2 integer 1572864" "$tmp_plist"
+
+    /usr/bin/defaults import com.apple.symbolichotkeys "$tmp_plist"
+    /bin/rm -f "$tmp_plist"
+    /usr/bin/killall SystemUIServer 2>/dev/null || true
+  '';
+
   home.activation.configureRaycastHotkey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     /usr/bin/defaults write com.raycast.macos raycastGlobalHotkey -string "Command-49"
     /usr/bin/defaults write com.raycast.macos initialSpotlightHotkey -string "Command-49"

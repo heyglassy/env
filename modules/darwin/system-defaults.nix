@@ -145,6 +145,14 @@
             type = "standard";
           };
         };
+        # Finder search window. Also disabled to avoid Spotlight claiming related Space shortcuts.
+        "65" = {
+          enabled = 0;
+          value = {
+            parameters = [ 65535 49 1572864 ];
+            type = "standard";
+          };
+        };
       };
     };
   };
