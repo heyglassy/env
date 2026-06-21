@@ -2,6 +2,27 @@
 
 import { $ } from "bun";
 
+const opCandidates = [
+  "/opt/homebrew/bin/op",
+  "/usr/local/bin/op",
+  "/run/current-system/sw/bin/op",
+];
+
+async function findOnePasswordCli(): Promise<string | null> {
+  for (const candidate of opCandidates) {
+    const result = await $`test -x ${candidate}`.nothrow();
+    if (result.exitCode === 0) return candidate;
+  }
+
+  const result = await $`command -v op`.nothrow();
+  if (result.exitCode === 0) {
+    const path = result.text().trim();
+    if (path) return path;
+  }
+
+  return null;
+}
+
 // Ensure all console output is written directly to stdout/stderr
 function stringifyConsoleArg(arg: unknown): string {
   if (typeof arg === "string") return arg;
@@ -129,6 +150,12 @@ function getUserContext() {
 
 async function configureGitSigningFrom1Password() {
   const { userName, env: userEnv } = getUserContext();
+  const op = await findOnePasswordCli();
+
+  if (!op) {
+    warn("1Password CLI not found; skipping Git signing key configuration.");
+    return;
+  }
 
   // Ensure PATH includes common Homebrew locations
   userEnv.PATH = `/opt/homebrew/bin:/usr/local/bin:${process.env.PATH || ""}`;
@@ -142,7 +169,7 @@ async function configureGitSigningFrom1Password() {
   let pubkey = "";
   try {
     pubkey = (
-      await $`sudo -u ${userName} -E op read "op://Personal/GitHub/public key"`.text()
+      await $`sudo -u ${userName} -E ${op} read "op://Personal/GitHub/public key"`.text()
     ).trim();
   } catch (e) {
     warn(
@@ -186,13 +213,19 @@ async function configureGitSigningFrom1Password() {
 
 async function isOnePasswordSignedIn(): Promise<boolean> {
   const { userName } = getUserContext();
+  const op = await findOnePasswordCli();
+
+  if (!op) {
+    console.log("1Password CLI not found; skipping 1Password post-switch tasks.");
+    return false;
+  }
 
   const whoamiResult =
-    await $`OP_ACCOUNT=my.1password.com sudo -u ${userName} -E op whoami --format json`.nothrow();
+    await $`OP_ACCOUNT=my.1password.com sudo -u ${userName} -E ${op} whoami --format json`.nothrow();
 
   if (whoamiResult.exitCode === 1) {
     const loginResult =
-      await $`OP_ACCOUNT=my.1password.com sudo -u ${userName} -E op signin`.nothrow();
+      await $`OP_ACCOUNT=my.1password.com sudo -u ${userName} -E ${op} signin`.nothrow();
     if (loginResult.exitCode === 0) {
       console.log("1Password login successful");
       return true;

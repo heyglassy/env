@@ -126,5 +126,14 @@ kbd:
     done
 
     @echo "Restarting Raycast..."
-    @open -a "Raycast"
+    @for attempt in 1 2 3 4 5; do \
+        if open -a "Raycast"; then \
+            break; \
+        fi; \
+        if [ "$attempt" -eq 5 ]; then \
+            echo "Raycast did not restart; open it manually."; \
+            exit 0; \
+        fi; \
+        sleep 0.5; \
+    done
     @echo "Raycast has been restarted."
