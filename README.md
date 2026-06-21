@@ -185,14 +185,21 @@ Some state should not live in this repo:
 - Berkeley Mono is licensed. Put font files on each machine at:
 
   ```bash
-  ~/.config/nix-darwin-private/fonts/berkeley-mono/
+  ~/.config/nix/darwin-private/fonts-berkeley-mono/
   ```
 
-  The activation also checks these equivalent private locations:
+  On a fresh install, `switch` creates that directory if the font files are not
+  present yet. You can also open it with:
+
+  ```bash
+  just private-font-dir
+  ```
+
+  The activation also checks these older equivalent private locations:
 
   ```bash
   ~/.config/nix/darwin-private/fonts/berkeley-mono/
-  ~/.config/nix/darwin-private/fonts-berkeley-mono/
+  ~/.config/nix-darwin-private/fonts/berkeley-mono/
   ```
 
 - App logins, OAuth sessions, Bluetooth pairing, app licenses, and local secrets

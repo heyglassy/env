@@ -6,14 +6,21 @@ repo.
 Put the licensed `.otf` and `.ttf` files here on each machine:
 
 ```sh
-~/.config/nix-darwin-private/fonts/berkeley-mono/
+~/.config/nix/darwin-private/fonts-berkeley-mono/
 ```
 
-The activation also checks these equivalent private locations:
+On a fresh install, `switch` creates that directory if the font files are not
+present yet. You can also open it with:
+
+```sh
+just private-font-dir
+```
+
+The activation also checks these older equivalent private locations:
 
 ```sh
 ~/.config/nix/darwin-private/fonts/berkeley-mono/
-~/.config/nix/darwin-private/fonts-berkeley-mono/
+~/.config/nix-darwin-private/fonts/berkeley-mono/
 ```
 
 Expected files:

@@ -1,10 +1,11 @@
 { lib, assetsPath, hostConfig, ... }:
 
 let
+  userHome = "/Users/${hostConfig.userName}";
   privateFontSources = hostConfig.privateFontSources or [
-    "$HOME/.config/nix-darwin-private/fonts/berkeley-mono"
-    "$HOME/.config/nix/darwin-private/fonts/berkeley-mono"
-    "$HOME/.config/nix/darwin-private/fonts-berkeley-mono"
+    "${userHome}/.config/nix/darwin-private/fonts-berkeley-mono"
+    "${userHome}/.config/nix/darwin-private/fonts/berkeley-mono"
+    "${userHome}/.config/nix-darwin-private/fonts/berkeley-mono"
   ];
   privateFontSourceEntries = lib.concatMapStringsSep "\n" (source: ''
       "${source}"'') privateFontSources;
@@ -16,20 +17,29 @@ in
     font_sources=(
 ${privateFontSourceEntries}
     )
-    target_dir="$HOME/Library/Fonts"
+    target_dir="${userHome}/Library/Fonts"
+    preferred_source_dir="''${font_sources[0]}"
 
     source_dir=""
     for candidate in "''${font_sources[@]}"; do
-      if [ -d "$candidate" ]; then
+      [ -d "$candidate" ] || continue
+      for font in "$candidate"/BerkeleyMono*.otf "$candidate"/BerkeleyMono*.ttf; do
+        [ -e "$font" ] || continue
         source_dir="$candidate"
-        break
-      fi
+        break 2
+      done
     done
 
     if [ -z "$source_dir" ]; then
-      echo "Berkeley Mono font source not found. Checked:"
+      mkdir -p "$preferred_source_dir"
+      if [ "$(id -u)" -eq 0 ]; then
+        chown "${hostConfig.userName}:staff" "$preferred_source_dir" 2>/dev/null || true
+      fi
+      echo "Berkeley Mono font files not found. Created private font directory:"
+      echo "  $preferred_source_dir"
+      echo "Copy licensed BerkeleyMono*.otf/.ttf files there, then rerun switch."
+      echo "Checked:"
       printf '  %s\n' "''${font_sources[@]}"
-      echo "Place licensed Berkeley Mono .otf/.ttf files in one of those directories, then rerun switch."
       exit 0
     fi
 

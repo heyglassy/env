@@ -44,6 +44,11 @@ bootstrap-apps:
 bootstrap-editors:
     ./scripts/install_editor_extensions.sh
 
+private-font-dir:
+    mkdir -p "$HOME/.config/nix/darwin-private/fonts-berkeley-mono"
+    open "$HOME/.config/nix/darwin-private/fonts-berkeley-mono"
+    @echo "Copy licensed BerkeleyMono*.otf/.ttf files here, then run: just switch"
+
 install-final-cut:
     @if [ -d "/Applications/Final Cut Pro.app" ]; then \
         echo "Final Cut Pro already installed"; \
