@@ -9,6 +9,13 @@ Put the licensed `.otf` and `.ttf` files here on each machine:
 ~/.config/nix-darwin-private/fonts/berkeley-mono/
 ```
 
+The activation also checks these equivalent private locations:
+
+```sh
+~/.config/nix/darwin-private/fonts/berkeley-mono/
+~/.config/nix/darwin-private/fonts-berkeley-mono/
+```
+
 Expected files:
 
 ```text

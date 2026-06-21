@@ -188,6 +188,13 @@ Some state should not live in this repo:
   ~/.config/nix-darwin-private/fonts/berkeley-mono/
   ```
 
+  The activation also checks these equivalent private locations:
+
+  ```bash
+  ~/.config/nix/darwin-private/fonts/berkeley-mono/
+  ~/.config/nix/darwin-private/fonts-berkeley-mono/
+  ```
+
 - App logins, OAuth sessions, Bluetooth pairing, app licenses, and local secrets
   stay machine-local or in 1Password.
 

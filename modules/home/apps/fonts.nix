@@ -1,18 +1,35 @@
 { lib, assetsPath, hostConfig, ... }:
 
 let
-  privateFontSource = "/Users/${hostConfig.userName}/.config/nix-darwin-private/fonts/berkeley-mono";
+  privateFontSources = hostConfig.privateFontSources or [
+    "$HOME/.config/nix-darwin-private/fonts/berkeley-mono"
+    "$HOME/.config/nix/darwin-private/fonts/berkeley-mono"
+    "$HOME/.config/nix/darwin-private/fonts-berkeley-mono"
+  ];
+  privateFontSourceEntries = lib.concatMapStringsSep "\n" (source: ''
+      "${source}"'') privateFontSources;
   insignaLogoFont = assetsPath + "/fonts/InsignaLogo-Regular.ttf";
   planetScaleLogoFont = assetsPath + "/fonts/PlanetScaleLogo-Regular.ttf";
 in
 {
   home.activation.installPrivateFonts = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    source_dir="${privateFontSource}"
+    font_sources=(
+${privateFontSourceEntries}
+    )
     target_dir="$HOME/Library/Fonts"
 
-    if [ ! -d "$source_dir" ]; then
-      echo "Berkeley Mono font source not found at $source_dir"
-      echo "Place licensed Berkeley Mono .otf/.ttf files there, then rerun switch."
+    source_dir=""
+    for candidate in "''${font_sources[@]}"; do
+      if [ -d "$candidate" ]; then
+        source_dir="$candidate"
+        break
+      fi
+    done
+
+    if [ -z "$source_dir" ]; then
+      echo "Berkeley Mono font source not found. Checked:"
+      printf '  %s\n' "''${font_sources[@]}"
+      echo "Place licensed Berkeley Mono .otf/.ttf files in one of those directories, then rerun switch."
       exit 0
     fi
 
