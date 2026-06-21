@@ -1,6 +1,10 @@
-{ pkgs, lib, assetsPath, ... }:
+{ pkgs, lib, assetsPath, hostConfig, ... }:
 
 {
+  home.packages = lib.optionals (hostConfig.hostName == "eulogia") [
+    pkgs.vscode
+  ];
+
   home.activation.configureEditors = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     set -euo pipefail
 
