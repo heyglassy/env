@@ -54,20 +54,16 @@ private-font-dir:
 install-berkeley-mono:
     ./scripts/install_berkeley_mono_fonts.sh
 
-install-final-cut:
-    @if [ -d "/Applications/Final Cut Pro.app" ]; then \
-        echo "Final Cut Pro already installed"; \
-        exit 0; \
-    fi; \
-    available_kb="$(df -Pk / | awk 'NR == 2 { print $4 }')"; \
-    required_kb=25000000; \
-    if [ "$available_kb" -lt "$required_kb" ]; then \
-        echo "Final Cut Pro needs more free space before installing."; \
-        echo "Available: $((available_kb / 1024 / 1024)) GiB; recommended minimum: $((required_kb / 1024 / 1024)) GiB."; \
-        echo "Free space, then run: just install-final-cut"; \
+install target:
+    @if [ "{{target}}" = "final-cut" ]; then \
+        just install-final-cut; \
+    else \
+        echo "Unknown install target: {{target}}"; \
         exit 1; \
-    fi; \
-    mas install 424389933
+    fi
+
+install-final-cut:
+    ./scripts/install_final_cut.sh
 
 clean-final-cut-temp:
     @tmp_items="${TMPDIR%/}/TemporaryItems"; \
