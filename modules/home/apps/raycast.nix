@@ -34,6 +34,14 @@
     /usr/bin/defaults write com.raycast.macos raycastGlobalHotkey -string "Command-49"
     /usr/bin/defaults write com.raycast.macos initialSpotlightHotkey -string "Command-49"
     /usr/bin/defaults write com.raycast.macos mainWindow_isMonitoringGlobalHotkeys -bool true
+    /usr/bin/defaults write com.raycast.macos navigationCommandStyleIdentifierKey -string "vim"
+    /usr/bin/defaults write com.raycast.macos raycast_hyperKey_state -dict \
+      enabled -bool true \
+      includeShiftKey -bool true \
+      keyCode -int 57
+    /usr/bin/defaults write com.raycast.macos useHyperKeyIcon -bool true
+    /usr/bin/defaults write com.raycast.macos onboarding_setupHotkey -bool true
+    /usr/bin/defaults write com.raycast.macos onboarding_setupAlias -bool true
   '';
 
   home.activation.prepareRaycastImport = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
