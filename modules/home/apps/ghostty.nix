@@ -6,13 +6,10 @@ let
   backgroundPath =
     "/Users/${hostConfig.userName}/.config/ghostty/backgrounds/${backgroundName}";
   insignia = self.packages.${pkgs.stdenv.hostPlatform.system}.insignia;
-in
-{
-  home.packages = [
-    insignia
-  ];
-
-  xdg.configFile."ghostty/config".text =
+  appSupportConfigText = ''
+    theme = test
+  '';
+  configText =
     (builtins.replaceStrings
       [ "title = insignia" ]
       [ "title = ${hostConfig.hostName}" ]
@@ -25,9 +22,21 @@ in
       background-image-fit = contain
       background-image-repeat = false
     '';
+in
+{
+  home.packages = [
+    insignia
+  ];
+
+  xdg.configFile."ghostty/config".text = configText;
+  home.file."Library/Application Support/com.mitchellh.ghostty/config".text = appSupportConfigText;
 
   xdg.configFile."ghostty/backgrounds/insignia.png".source =
     assetsPath + "/ghostty/backgrounds/insignia.png";
   xdg.configFile."ghostty/backgrounds/eulogia.png".source =
     assetsPath + "/ghostty/backgrounds/eulogia.png";
+  xdg.configFile."ghostty/themes/test".source =
+    assetsPath + "/ghostty/themes/test";
+  home.file."Library/Application Support/com.mitchellh.ghostty/themes/test".source =
+    assetsPath + "/ghostty/themes/test";
 }

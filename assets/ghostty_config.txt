@@ -6,7 +6,7 @@ font-codepoint-map = U+E401=PlanetScale Logo
 confirm-close-surface = false
 copy-on-select = clipboard
 macos-titlebar-style = tabs
-theme = dark:Ghostty Default Style Dark,light:Catppuccin Frappe
+theme = test
 
 mouse-hide-while-typing = true
 scrollback-limit = 100000
