@@ -2131,7 +2131,7 @@ impl StatusBar {
     }
 
     fn set_theme(&mut self, style: StatusStyle) {
-        self.style = style;
+        self.style = status_style_from_env().unwrap_or(style);
     }
 
     fn render(&self, area: Rect, buf: &mut Buffer) {
@@ -2155,6 +2155,23 @@ impl StatusBar {
         let cwd = self.cwd.borrow();
         let text = format!(" {}  |  {}  |  {} ", self.label, cwd, time);
         write_clipped(buf, area.x, y, area.width, &text, style);
+    }
+}
+
+fn status_style_from_env() -> Option<StatusStyle> {
+    let foreground = env::var("INSIGNIA_STATUS_FOREGROUND")
+        .ok()
+        .and_then(|value| parse_hex_rgb(&value));
+    let background = env::var("INSIGNIA_STATUS_BACKGROUND")
+        .ok()
+        .and_then(|value| parse_hex_rgb(&value));
+
+    match (foreground, background) {
+        (Some(foreground), Some(background)) => Some(StatusStyle {
+            foreground,
+            background,
+        }),
+        _ => None,
     }
 }
 
