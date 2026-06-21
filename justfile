@@ -24,6 +24,8 @@ full-switch target=host:
 
 fswitch target=host:
     just full-switch {{target}}
+    just install-berkeley-mono
+    just switch {{target}}
     just install-final-cut
 
 post-switch:

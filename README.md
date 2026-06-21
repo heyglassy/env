@@ -150,7 +150,7 @@ just switch
 just switch insignia
 just switch eulogia
 
-# Full workflow: switch, post-switch tasks, and guarded Final Cut install.
+# Full workflow: switch, post-switch tasks, Berkeley Mono restore, and guarded Final Cut install.
 just fswitch
 
 # Build without activating.
@@ -196,19 +196,27 @@ Some state should not live in this repo:
   ```
 
   To restore the fonts from 1Password, upload a zip of the licensed font files
-  as a 1Password Document titled `Berkeley Mono Fonts` in the `Personal` vault,
-  then run:
+  as a file in 1Password. The default reference is:
+
+  ```text
+  op://Personal/berkeley-mono-fonts/berkeley-mono-fonts.zip
+  ```
+
+  Then run:
 
   ```bash
   just install-berkeley-mono
   just switch
   ```
 
-  If you use a different document title or vault:
+  `just fswitch` runs this restore automatically after the first switch has
+  installed the 1Password CLI, then runs `switch` again so the fonts are copied
+  into `~/Library/Fonts`.
+
+  If you use a different 1Password reference:
 
   ```bash
-  BERKELEY_MONO_1P_DOCUMENT="Berkeley Mono" \
-  BERKELEY_MONO_1P_VAULT="Private" \
+  BERKELEY_MONO_1P_DOCUMENT="op://Personal/some-item/fonts.zip" \
   just install-berkeley-mono
   ```
 

@@ -17,19 +17,27 @@ just private-font-dir
 ```
 
 To restore the fonts from 1Password, upload a zip of the licensed font files as
-a 1Password Document titled `Berkeley Mono Fonts` in the `Personal` vault, then
-run:
+a file in 1Password. The default reference is:
+
+```text
+op://Personal/berkeley-mono-fonts/berkeley-mono-fonts.zip
+```
+
+Then run:
 
 ```sh
 just install-berkeley-mono
 just switch
 ```
 
-If you use a different document title or vault:
+`just fswitch` runs this restore automatically after the first switch has
+installed the 1Password CLI, then runs `switch` again so the fonts are copied
+into `~/Library/Fonts`.
+
+If you use a different 1Password reference:
 
 ```sh
-BERKELEY_MONO_1P_DOCUMENT="Berkeley Mono" \
-BERKELEY_MONO_1P_VAULT="Private" \
+BERKELEY_MONO_1P_DOCUMENT="op://Personal/some-item/fonts.zip" \
 just install-berkeley-mono
 ```
 
