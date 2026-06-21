@@ -1,0 +1,19 @@
+[package]
+name = "insignia"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1"
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+crossterm = "0.29"
+libc = "0.2"
+libghostty-vt = "0.2"
+portable-pty = "0.9"
+ratatui = "0.30"
+tracing = "0.1.44"
+tracing-appender = "0.2.5"
+tracing-subscriber = "0.3.23"
+
+[dev-dependencies]
+tempfile = "3"

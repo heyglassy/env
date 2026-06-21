@@ -1,4 +1,4 @@
 {
-    hostName = "_template_";
-    userName = "_template_";
+    hostName = "insignia";
+    userName = "heyglassy";
 }

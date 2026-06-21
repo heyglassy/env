@@ -22,9 +22,18 @@ report.[0-9]_.[0-9]_.[0-9]_.[0-9]_.json
 .env.production.local
 .env.local
 
+# local app exports
+*.rayconfig
+
+# local audit/workflow notes
+machine-drift-report.md
+new-machine-migration-audit.md
+jjui-hunk-workflow.md
+
 # caches
 .eslintcache
 .cache
+target
 *.tsbuildinfo
 
 # IntelliJ based IDEs

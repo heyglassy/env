@@ -1,0 +1,30 @@
+[
+  {
+    "key": "cmd+k cmd+\\",
+    "command": "workbench.action.splitEditorToRightGroup"
+  },
+  {
+    "key": "cmd+r cmd+r",
+    "command": "workbench.action.toggleMaximizedPanel"
+  },
+  {
+    "key": "cmd+r cmd+y",
+    "command": "workbench.action.evenEditorWidths"
+  },
+  {
+    "key": "ctrl+w ctrl+w",
+    "command": "workbench.action.toggleEditorWidths"
+  },
+  {
+    "key": "ctrl+n right",
+    "command": "workbench.action.newGroupLeft"
+  },
+  {
+    "key": "cmd+i",
+    "command": "composerMode.agent"
+  },
+  {
+    "key": "cmd+l",
+    "command": "composerMode.chat"
+  }
+]

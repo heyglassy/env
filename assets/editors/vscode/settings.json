@@ -1,0 +1,33 @@
+{
+  "workbench.sideBar.location": "right",
+  "workbench.activityBar.location": "hidden",
+  "workbench.colorTheme": "GitHub Dark Dimmed",
+  "workbench.preferredLightColorTheme": "GitHub Light",
+  "workbench.preferredDarkColorTheme": "Nord",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.startupEditor": "none",
+  "workbench.editor.empty.hint": "hidden",
+  "workbench.secondarySideBar.defaultVisibility": "hidden",
+  "workbench.settings.applyToAllProfiles": [],
+  "workbench.editorAssociations": {
+    "*.md": "vscode.markdown.preview.editor"
+  },
+  "editor.fontFamily": "Berkeley Mono, JetBrains Mono, Menlo, Monaco, 'Courier New', monospace",
+  "editor.fontSize": 14,
+  "editor.formatOnSave": true,
+  "editor.accessibilitySupport": "off",
+  "terminal.integrated.fontSize": 15,
+  "terminal.external.osxExec": "Ghostty.app",
+  "window.autoDetectColorScheme": true,
+  "scm.repositories.selectionMode": "single",
+  "chat.editor.fontSize": 14,
+  "chat.fontSize": 14,
+  "debug.console.fontSize": 14,
+  "scm.inputFontSize": 14,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

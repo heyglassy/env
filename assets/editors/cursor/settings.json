@@ -1,0 +1,66 @@
+{
+  "prettier.enable": true,
+  "prettier.documentSelectors": [
+    "**/*.astro"
+  ],
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+  "editor.fontFamily": "Berkeley Mono Variable, JetBrains Mono",
+  "editor.fontSize": 14,
+  "editor.fontLigatures": true,
+  "editor.smoothScrolling": true,
+  "editor.stickyScroll.enabled": true,
+  "editor.accessibilitySupport": "off",
+  "editor.inlineSuggest.enabled": true,
+  "editor.largeFileOptimizations": false,
+  "workbench.sideBar.location": "right",
+  "workbench.activityBar.location": "hidden",
+  "workbench.panel.defaultLocation": "left",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.editor.openPositioning": "left",
+  "workbench.editor.wrapTabs": true,
+  "window.commandCenter": false,
+  "window.autoDetectColorScheme": true,
+  "terminal.integrated.defaultProfile.osx": "bash",
+  "git.autofetch": true,
+  "git.enableCommitSigning": true,
+  "git.allowNoVerifyCommit": true,
+  "typescript.updateImportsOnFileMove.enabled": "always",
+  "typescript.tsserver.maxTsServerMemory": 6144,
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "eslint.alwaysShowStatus": true,
+  "eslint.lintTask.enable": true,
+  "makefile.configureOnOpen": false,
+  "redhat.telemetry.enabled": false,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[astro]": {
+    "editor.defaultFormatter": "astro-build.astro-vscode"
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go"
+  },
+  "[sql]": {
+    "editor.defaultFormatter": "adpyke.vscode-sql-formatter"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": null
+  }
+}

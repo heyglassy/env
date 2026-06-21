@@ -144,9 +144,7 @@ async function configureGitSigningFrom1Password() {
     pubkey = (
       await $`sudo -u ${userName} -E op read "op://Personal/GitHub/public key"`.text()
     ).trim();
-    console.log(pubkey);
   } catch (e) {
-    console.log(e);
     warn(
       "Could not read key from 1Password. Ensure the 1Password CLI is unlocked."
     );
@@ -169,6 +167,16 @@ async function configureGitSigningFrom1Password() {
   }
 
   try {
+    const currentKey = (
+      await $`git config --global --get user.signingKey`.nothrow()
+    )
+      .text()
+      .trim();
+    if (currentKey === pubkey) {
+      log("Git user.signingKey already matches 1Password");
+      return;
+    }
+
     await $`git config --global user.signingKey ${pubkey} --replace-all`;
     log("Updated git user.signingKey from 1Password");
   } catch (e) {

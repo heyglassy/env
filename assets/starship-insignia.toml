@@ -1,0 +1,19 @@
+"$schema" = 'https://starship.rs/config-schema.json'
+
+format = "$character"
+palette = "gruvbox_dark"
+
+[palettes.gruvbox_dark]
+color_green = "#98971a"
+color_purple = "#b16286"
+color_red = "#cc241d"
+color_yellow = "#d79921"
+
+[character]
+disabled = false
+success_symbol = "[](bold fg:color_green)"
+error_symbol = "[](bold fg:color_red)"
+vimcmd_symbol = "[](bold fg:color_green)"
+vimcmd_replace_one_symbol = "[](bold fg:color_purple)"
+vimcmd_replace_symbol = "[](bold fg:color_purple)"
+vimcmd_visual_symbol = "[](bold fg:color_yellow)"
