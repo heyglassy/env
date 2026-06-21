@@ -1,6 +1,12 @@
 { lib, ... }:
 
 {
+  home.activation.configureRaycastHotkey = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+    defaults write com.raycast.macos raycastGlobalHotkey -string "Command-49"
+    defaults write com.raycast.macos initialSpotlightHotkey -string "Command-49"
+    defaults write com.raycast.macos mainWindow_isMonitoringGlobalHotkeys -bool true
+  '';
+
   home.activation.prepareRaycastImport = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     import_dir="$HOME/.config/raycast-imports"
     mkdir -p "$import_dir"

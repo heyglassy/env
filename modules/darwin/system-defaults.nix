@@ -134,5 +134,18 @@
       "com.apple.mouse.scaling" = "0.875";
       "com.apple.trackpad.scrolling" = "0.1838";
     };
+
+    "com.apple.symbolichotkeys" = {
+      AppleSymbolicHotKeys = {
+        # Spotlight search. Disabled so Raycast can own Command-Space.
+        "64" = {
+          enabled = 0;
+          value = {
+            parameters = [ 65535 49 1048576 ];
+            type = "standard";
+          };
+        };
+      };
+    };
   };
 }
