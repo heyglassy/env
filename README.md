@@ -195,6 +195,23 @@ Some state should not live in this repo:
   just private-font-dir
   ```
 
+  To restore the fonts from 1Password, upload a zip of the licensed font files
+  as a 1Password Document titled `Berkeley Mono Fonts` in the `Personal` vault,
+  then run:
+
+  ```bash
+  just install-berkeley-mono
+  just switch
+  ```
+
+  If you use a different document title or vault:
+
+  ```bash
+  BERKELEY_MONO_1P_DOCUMENT="Berkeley Mono" \
+  BERKELEY_MONO_1P_VAULT="Private" \
+  just install-berkeley-mono
+  ```
+
   The activation also checks these older equivalent private locations:
 
   ```bash

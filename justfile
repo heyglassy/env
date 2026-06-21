@@ -49,6 +49,9 @@ private-font-dir:
     open "$HOME/.config/nix/darwin-private/fonts-berkeley-mono"
     @echo "Copy licensed BerkeleyMono*.otf/.ttf files here, then run: just switch"
 
+install-berkeley-mono:
+    ./scripts/install_berkeley_mono_fonts.sh
+
 install-final-cut:
     @if [ -d "/Applications/Final Cut Pro.app" ]; then \
         echo "Final Cut Pro already installed"; \
