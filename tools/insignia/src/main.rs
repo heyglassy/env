@@ -196,6 +196,7 @@ impl TerminalApp {
             if let Ok(pwd) = term.pwd()
                 && !pwd.is_empty()
             {
+                notify_outer_terminal_pwd(pwd);
                 *status_cwd.borrow_mut() = display_pwd(pwd);
             }
         })?;
@@ -2183,6 +2184,31 @@ fn display_pwd(pwd: &str) -> String {
     percent_decode(path)
 }
 
+fn notify_outer_terminal_pwd(pwd: &str) {
+    let Some(sequence) = outer_terminal_pwd_sequence(pwd) else {
+        return;
+    };
+
+    match OpenOptions::new().write(true).open("/dev/tty") {
+        Ok(mut tty) => {
+            if let Err(error) = tty.write_all(sequence.as_bytes()).and_then(|_| tty.flush()) {
+                warn!(%error, "failed to notify outer terminal of cwd");
+            }
+        }
+        Err(error) => {
+            warn!(%error, "failed to open /dev/tty for outer cwd notification");
+        }
+    }
+}
+
+fn outer_terminal_pwd_sequence(pwd: &str) -> Option<String> {
+    if !pwd.starts_with("file://") || pwd.bytes().any(|byte| byte < 0x20 || byte == 0x7f) {
+        return None;
+    }
+
+    Some(format!("\x1b]7;{pwd}\x1b\\"))
+}
+
 fn percent_decode(input: &str) -> String {
     let mut output = String::with_capacity(input.len());
     let bytes = input.as_bytes();
@@ -2559,6 +2585,19 @@ selection-background = #acb0be
             "/tmp/insignia project"
         );
         assert_eq!(display_pwd("/tmp/plain"), "/tmp/plain");
+    }
+
+    #[test]
+    fn outer_terminal_pwd_sequence_forwards_osc7_file_uri() {
+        assert_eq!(
+            outer_terminal_pwd_sequence("file://localhost/tmp/insignia%20project").as_deref(),
+            Some("\x1b]7;file://localhost/tmp/insignia%20project\x1b\\")
+        );
+        assert_eq!(outer_terminal_pwd_sequence("/tmp/plain"), None);
+        assert_eq!(
+            outer_terminal_pwd_sequence("file://localhost/tmp/\x1b]0;bad"),
+            None
+        );
     }
 
     #[test]
