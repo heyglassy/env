@@ -135,6 +135,11 @@
       "com.apple.trackpad.scrolling" = "0.1838";
     };
 
+    "com.apple.dock" = {
+      showDesktopGestureEnabled = 1;
+      showLaunchpadGestureEnabled = 1;
+    };
+
     "com.apple.symbolichotkeys" = {
       AppleSymbolicHotKeys = {
         # Spotlight search. Disabled so Raycast can own Command-Space.

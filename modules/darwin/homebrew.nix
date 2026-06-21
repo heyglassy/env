@@ -38,6 +38,7 @@ let
 
   sharedLaptopMasApps = {
     "Things" = 904280696;
+    "Ulysses" = 1225570693;
   };
 in
 
