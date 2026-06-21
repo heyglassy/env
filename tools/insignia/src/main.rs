@@ -820,6 +820,10 @@ impl PtySession {
         for arg in command.iter().skip(1) {
             builder.arg(arg);
         }
+        if let Ok(cwd) = env::current_dir() {
+            builder.cwd(&cwd);
+            builder.env("PWD", cwd.as_os_str());
+        }
         builder.env(
             "TERM",
             env::var("INSIGNIA_CHILD_TERM")
