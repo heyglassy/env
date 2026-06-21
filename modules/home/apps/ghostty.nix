@@ -18,7 +18,7 @@ in
       [ "title = ${hostConfig.hostName}" ]
       (builtins.readFile (assetsPath + "/ghostty_config.txt"))) + ''
 
-      command = ${insignia}/bin/insignia -- /run/current-system/sw/bin/bash -l
+      command = /usr/bin/env INSIGNIA_STATUS_LABEL=${hostConfig.hostName} ${insignia}/bin/insignia -- /run/current-system/sw/bin/bash -l
       background-image = ${backgroundPath}
       background-image-opacity = 0.08
       background-image-position = center

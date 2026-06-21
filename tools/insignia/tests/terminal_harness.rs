@@ -26,6 +26,7 @@ fn draws_pty_content_and_bottom_status_bar() {
         &[
             ("INSIGNIA_DISABLE_THEME_QUERY", "1"),
             ("INSIGNIA_TEST_TIME", "19:17"),
+            ("INSIGNIA_STATUS_LABEL", "eulogia"),
             (
                 "INSIGNIA_STATUS_CWD",
                 "/Users/heyglassy/.config/ghostty/themes",
@@ -43,7 +44,7 @@ fn draws_pty_content_and_bottom_status_bar() {
     );
     assert_eq!(
         snapshot.line(ROWS - 1).trim(),
-        "insignia  |  /Users/heyglassy/.config/ghostty/themes  |  19:17"
+        "eulogia  |  /Users/heyglassy/.config/ghostty/themes  |  19:17"
     );
 
     harness.send(b"\x11");

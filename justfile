@@ -63,7 +63,7 @@ install target:
     fi
 
 install-final-cut:
-    ./scripts/install_final_cut.sh
+    /bin/bash ./scripts/install_final_cut.sh
 
 clean-final-cut-temp:
     @tmp_items="${TMPDIR%/}/TemporaryItems"; \

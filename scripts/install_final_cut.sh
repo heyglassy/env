@@ -2,7 +2,59 @@
 set -euo pipefail
 
 app_id="424389933"
+bundle_id="com.apple.FinalCut"
 required_kb=25000000
+
+final_cut_installed() {
+  for app_path in \
+    "/Applications/Final Cut Pro.app" \
+    "/Applications/Final Cut.app" \
+    "$HOME/Applications/Final Cut Pro.app" \
+    "$HOME/Applications/Final Cut.app"; do
+    if app_is_final_cut "$app_path"; then
+      echo "Final Cut already installed at $app_path"
+      return 0
+    fi
+  done
+
+  for applications_dir in /Applications "$HOME/Applications"; do
+    [ -d "$applications_dir" ] || continue
+    for app_path in "$applications_dir"/*.app; do
+      [ -e "$app_path" ] || continue
+      if app_is_final_cut "$app_path"; then
+        echo "Final Cut already installed at $app_path"
+        return 0
+      fi
+    done
+  done
+
+  while IFS= read -r app_path; do
+    if app_is_final_cut "$app_path"; then
+      echo "Final Cut already installed at $app_path"
+      return 0
+    fi
+  done < <(/usr/bin/mdfind "kMDItemCFBundleIdentifier == '$bundle_id'" 2>/dev/null)
+
+  while IFS= read -r app_path; do
+    if app_is_final_cut "$app_path"; then
+      echo "Final Cut already installed at $app_path"
+      return 0
+    fi
+  done < <(/usr/bin/mdfind "kMDItemAppStoreAdamID == $app_id" 2>/dev/null)
+
+  return 1
+}
+
+app_is_final_cut() {
+  app_path="$1"
+  info_plist="$app_path/Contents/Info.plist"
+
+  [ -d "$app_path" ] || return 1
+  [ -f "$info_plist" ] || return 1
+
+  app_bundle_id="$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$info_plist" 2>/dev/null || true)"
+  [ "$app_bundle_id" = "$bundle_id" ]
+}
 
 find_mas() {
   for candidate in \
@@ -18,19 +70,7 @@ find_mas() {
   command -v mas 2>/dev/null
 }
 
-for app_path in \
-  "/Applications/Final Cut Pro.app" \
-  "/Applications/Final Cut.app" \
-  "$HOME/Applications/Final Cut Pro.app" \
-  "$HOME/Applications/Final Cut.app"; do
-  if [ -d "$app_path" ]; then
-    echo "Final Cut already installed at $app_path"
-    exit 0
-  fi
-done
-
-if /usr/bin/mdfind "kMDItemAppStoreAdamID == $app_id" 2>/dev/null | /usr/bin/grep -q .; then
-  echo "Final Cut already installed"
+if final_cut_installed; then
   exit 0
 fi
 
@@ -40,8 +80,7 @@ if [ -z "$mas_bin" ]; then
   exit 1
 fi
 
-if "$mas_bin" list | /usr/bin/awk '{ print $1 }' | /usr/bin/grep -qx "$app_id"; then
-  echo "Final Cut already installed according to Mac App Store"
+if final_cut_installed; then
   exit 0
 fi
 

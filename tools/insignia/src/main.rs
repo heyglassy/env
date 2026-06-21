@@ -2109,12 +2109,14 @@ impl Default for StatusStyle {
 }
 
 struct StatusBar {
+    label: String,
     cwd: Rc<RefCell<String>>,
     style: StatusStyle,
 }
 
 impl StatusBar {
     fn new() -> Result<Self> {
+        let label = env::var("INSIGNIA_STATUS_LABEL").unwrap_or_else(|_| "insignia".to_string());
         let cwd = env::var("INSIGNIA_STATUS_CWD").unwrap_or_else(|_| {
             env::current_dir()
                 .ok()
@@ -2122,6 +2124,7 @@ impl StatusBar {
                 .unwrap_or_else(|| "?".to_string())
         });
         Ok(Self {
+            label,
             cwd: Rc::new(RefCell::new(cwd)),
             style: StatusStyle::default(),
         })
@@ -2150,7 +2153,7 @@ impl StatusBar {
         let time = env::var("INSIGNIA_TEST_TIME")
             .unwrap_or_else(|_| Local::now().format("%H:%M").to_string());
         let cwd = self.cwd.borrow();
-        let text = format!(" insignia  |  {}  |  {} ", cwd, time);
+        let text = format!(" {}  |  {}  |  {} ", self.label, cwd, time);
         write_clipped(buf, area.x, y, area.width, &text, style);
     }
 }
