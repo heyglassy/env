@@ -16,10 +16,10 @@ let
     "wispr-flow"
     "notion-calendar"
     "monodraw"
+    "1password-cli"
   ];
 
   insigniaOnlyCasks = [
-    "1password-cli"
     "slack"
     "arc"
     "1password"

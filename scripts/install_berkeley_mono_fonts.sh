@@ -22,7 +22,26 @@ find_op() {
 op_bin="${OP_BIN:-$(find_op || true)}"
 
 if [ -z "$op_bin" ]; then
-  echo "1Password CLI is not installed; run switch first so Homebrew installs it."
+  brew_bin=""
+  for candidate in \
+    /opt/homebrew/bin/brew \
+    /usr/local/bin/brew; do
+    if [ -x "$candidate" ]; then
+      brew_bin="$candidate"
+      break
+    fi
+  done
+
+  if [ -n "$brew_bin" ]; then
+    echo "1Password CLI is not installed; installing it with Homebrew..."
+    "$brew_bin" install --cask 1password-cli
+    op_bin="${OP_BIN:-$(find_op || true)}"
+  fi
+fi
+
+if [ -z "$op_bin" ]; then
+  echo "1Password CLI is not installed and Homebrew was not available to install it."
+  echo "Run just switch first, then rerun: just install-berkeley-mono"
   exit 1
 fi
 
