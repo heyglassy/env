@@ -74,6 +74,7 @@
                 ./modules/home/apps/fonts.nix
                 ./modules/home/apps/ghostty.nix
                 ./modules/home/apps/raycast.nix
+                ./modules/home/apps/rectangle.nix
                 ./modules/home/apps/starship.nix
               ];
             })
