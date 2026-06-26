@@ -5,17 +5,17 @@ let
     if hostConfig.hostName == "eulogia" then "eulogia.png" else "insignia.png";
   backgroundPath =
     "/Users/${hostConfig.userName}/.config/ghostty/backgrounds/${backgroundName}";
-  terminalStatus = self.packages.${pkgs.stdenv.hostPlatform.system}.terminal-status;
+  glassterm = self.packages.${pkgs.stdenv.hostPlatform.system}.glassterm;
   appSupportConfigText = ''
     theme = test
   '';
   configText =
     (builtins.replaceStrings
-      [ "title = insignia" ]
+      [ "title = glassterm" ]
       [ "title = ${hostConfig.hostName}" ]
       (builtins.readFile (assetsPath + "/ghostty_config.txt"))) + ''
 
-      command = /usr/bin/env -u NO_COLOR INSIGNIA_STATUS_LABEL=${hostConfig.hostName} INSIGNIA_STATUS_FOREGROUND=#f0d77d INSIGNIA_STATUS_BACKGROUND=#1f0f02 INSIGNIA_DISABLE_OSC_THEME_QUERY=1 ${terminalStatus}/bin/insignia -- /run/current-system/sw/bin/bash -l
+      command = /usr/bin/env -u NO_COLOR GLASSTERM_STATUS_LABEL=${hostConfig.hostName} GLASSTERM_STATUS_FOREGROUND=#f0d77d GLASSTERM_STATUS_BACKGROUND=#1f0f02 GLASSTERM_DISABLE_OSC_THEME_QUERY=1 ${glassterm}/bin/glassterm -- /run/current-system/sw/bin/bash -l
       background-image = ${backgroundPath}
       background-image-opacity = 0.08
       background-image-position = center
@@ -25,7 +25,7 @@ let
 in
 {
   home.packages = [
-    terminalStatus
+    glassterm
   ];
 
   xdg.configFile."ghostty/config".text = configText;

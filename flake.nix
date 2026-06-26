@@ -63,6 +63,7 @@
               };
               home-manager.users.${hostConfig.userName}.imports = [
                 ./modules/home/core.nix
+                ./modules/home/mise.nix
                 ./modules/home/shell.nix
                 ./modules/home/git.nix
                 ./modules/home/jj.nix
@@ -85,7 +86,7 @@
 
       defaultSystem = "aarch64-darwin";
       defaultPkgs = mkPkgs defaultSystem;
-      terminalStatus = defaultPkgs.callPackage ./packages/insignia.nix {};
+      glassterm = defaultPkgs.callPackage ./packages/glassterm.nix {};
     in
     {
       darwinConfigurations =
@@ -93,8 +94,7 @@
 
       packages.${defaultSystem} = {
         default = self.darwinConfigurations.eulogia.system;
-        terminal-status = terminalStatus;
-        insignia = terminalStatus;
+        inherit glassterm;
         npm-global-tools = defaultPkgs.callPackage ./packages/npm-global-tools.nix {};
       };
     };

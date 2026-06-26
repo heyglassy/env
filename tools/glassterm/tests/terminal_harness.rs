@@ -18,17 +18,17 @@ const ROWS: u16 = 24;
 
 #[test]
 fn draws_pty_content_and_bottom_status_bar() {
-    let bin = env!("CARGO_BIN_EXE_insignia");
+    let bin = env!("CARGO_BIN_EXE_glassterm");
     let shell = test_shell();
     let mut harness = TerminalHarness::spawn(
         bin,
         &["--", &shell, "-lc", "printf 'ready from pty'; sleep 30"],
         &[
-            ("INSIGNIA_DISABLE_THEME_QUERY", "1"),
-            ("INSIGNIA_TEST_TIME", "19:17"),
-            ("INSIGNIA_STATUS_LABEL", "eulogia"),
+            ("GLASSTERM_DISABLE_THEME_QUERY", "1"),
+            ("GLASSTERM_TEST_TIME", "19:17"),
+            ("GLASSTERM_STATUS_LABEL", "eulogia"),
             (
-                "INSIGNIA_STATUS_CWD",
+                "GLASSTERM_STATUS_CWD",
                 "/Users/heyglassy/.config/ghostty/themes",
             ),
         ],
@@ -51,12 +51,12 @@ fn draws_pty_content_and_bottom_status_bar() {
 }
 
 fn test_shell() -> String {
-    std::env::var("INSIGNIA_TEST_SHELL").unwrap_or_else(|_| "/bin/sh".to_string())
+    std::env::var("GLASSTERM_TEST_SHELL").unwrap_or_else(|_| "/bin/sh".to_string())
 }
 
 #[test]
 fn osc7_updates_bottom_status_cwd() {
-    let bin = env!("CARGO_BIN_EXE_insignia");
+    let bin = env!("CARGO_BIN_EXE_glassterm");
     let shell = test_shell();
     let mut harness = TerminalHarness::spawn(
         bin,
@@ -64,12 +64,12 @@ fn osc7_updates_bottom_status_cwd() {
             "--",
             &shell,
             "-lc",
-            "printf '\\033]7;file://localhost/tmp/insignia%%20project\\033\\\\'; printf 'ready after osc7'; sleep 30",
+            "printf '\\033]7;file://localhost/tmp/glassterm%%20project\\033\\\\'; printf 'ready after osc7'; sleep 30",
         ],
         &[
-            ("INSIGNIA_DISABLE_THEME_QUERY", "1"),
-            ("INSIGNIA_TEST_TIME", "19:17"),
-            ("INSIGNIA_STATUS_CWD", "/tmp/old"),
+            ("GLASSTERM_DISABLE_THEME_QUERY", "1"),
+            ("GLASSTERM_TEST_TIME", "19:17"),
+            ("GLASSTERM_STATUS_CWD", "/tmp/old"),
         ],
     );
 
@@ -78,7 +78,7 @@ fn osc7_updates_bottom_status_cwd() {
 
     assert_eq!(
         snapshot.line(ROWS - 1).trim(),
-        "insignia  |  /tmp/insignia project  |  19:17"
+        "glassterm  |  /tmp/glassterm project  |  19:17"
     );
 
     harness.send(b"\x11");

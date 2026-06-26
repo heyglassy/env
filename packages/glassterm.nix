@@ -22,11 +22,11 @@ let
   };
 in
 rustPlatform.buildRustPackage {
-  pname = "insignia";
+  pname = "glassterm";
   version = "0.1.0";
 
-  src = ../tools/insignia;
-  cargoHash = "sha256-enmwkUZfGm+KFeDLlzdOeTuwxU8ueteKNTj2V2/CsGk=";
+  src = ../tools/glassterm;
+  cargoHash = "sha256-3kruH2qxy5d0obZ/5S0CD1VrJR9alTGGi+WoEa4MU9w=";
 
   nativeBuildInputs = [
     gitMinimal
@@ -41,7 +41,7 @@ rustPlatform.buildRustPackage {
   ];
 
   GHOSTTY_SOURCE_DIR = ghosttySource;
-  INSIGNIA_TEST_SHELL = "${bash}/bin/bash";
+  GLASSTERM_TEST_SHELL = "${bash}/bin/bash";
 
   preBuild = ''
     export ZIG_GLOBAL_CACHE_DIR="$TMPDIR/zig-global-cache"
@@ -58,6 +58,6 @@ rustPlatform.buildRustPackage {
 
   meta = {
     description = "Single-pane terminal wrapper with a Ghostty-rendered bottom status bar";
-    mainProgram = "insignia";
+    mainProgram = "glassterm";
   };
 }

@@ -97,17 +97,11 @@ audit target=host:
     nix build .#npm-global-tools --no-link
     bunx tsc --noEmit
 
-test-terminal-status:
-    nix build .#terminal-status --no-link
+test-glassterm:
+    nix build .#glassterm --no-link
 
-build-terminal-status:
-    nix build .#terminal-status --no-link
-
-test-insignia:
-    nix build .#terminal-status --no-link
-
-build-insignia:
-    nix build .#terminal-status --no-link
+build-glassterm:
+    nix build .#glassterm --no-link
 
 raycast-import:
     mkdir -p "$HOME/.config/raycast-imports"

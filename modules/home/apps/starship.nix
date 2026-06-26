@@ -22,6 +22,6 @@ in
   };
   xdg.configFile."starship.toml".text =
     if hostConfig.hostName == "eulogia" then eulogiaConfig else baseConfig;
-  xdg.configFile."starship-insignia.toml".source =
-    assetsPath + "/starship-insignia.toml";
+  xdg.configFile."starship-glassterm.toml".source =
+    assetsPath + "/starship-glassterm.toml";
 }

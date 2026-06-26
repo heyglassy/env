@@ -58,7 +58,7 @@ static TERMINAL_RESTORED: AtomicBool = AtomicBool::new(true);
 fn main() -> Result<()> {
     let _trace_guard = init_tracing();
     let command = command_from_args();
-    info!(?command, "starting insignia");
+    info!(?command, "starting glassterm");
     let mut app = TerminalApp::new(command)?;
     app.run()
 }
@@ -77,23 +77,23 @@ fn command_from_args() -> Vec<String> {
 }
 
 fn init_tracing() -> Option<WorkerGuard> {
-    let enabled = env::var("INSIGNIA_TRACE")
+    let enabled = env::var("GLASSTERM_TRACE")
         .ok()
         .is_some_and(|value| !matches!(value.as_str(), "" | "0" | "false" | "off"));
     if !enabled {
         return None;
     }
 
-    let log_dir = env::var_os("INSIGNIA_TRACE_DIR")
+    let log_dir = env::var_os("GLASSTERM_TRACE_DIR")
         .map(PathBuf::from)
         .or_else(|| {
-            env::var_os("HOME").map(|home| PathBuf::from(home).join("Library/Logs/insignia"))
+            env::var_os("HOME").map(|home| PathBuf::from(home).join("Library/Logs/glassterm"))
         })
-        .unwrap_or_else(|| env::temp_dir().join("insignia"));
+        .unwrap_or_else(|| env::temp_dir().join("glassterm"));
 
     if let Err(error) = fs::create_dir_all(&log_dir) {
         eprintln!(
-            "insignia: failed to create trace log directory {}: {error}",
+            "glassterm: failed to create trace log directory {}: {error}",
             log_dir.display()
         );
         return None;
@@ -110,7 +110,7 @@ fn init_tracing() -> Option<WorkerGuard> {
         .finish();
 
     if let Err(error) = tracing::subscriber::set_global_default(subscriber) {
-        eprintln!("insignia: failed to initialize tracing: {error}");
+        eprintln!("glassterm: failed to initialize tracing: {error}");
         return None;
     }
 
@@ -168,7 +168,6 @@ impl TerminalApp {
             stdout,
             Clear(ClearType::All),
             cursor::MoveTo(0, 0),
-            EnableMouseCapture,
             EnableFocusChange,
             EnableBracketedPaste,
             PushKeyboardEnhancementFlags(
@@ -218,12 +217,14 @@ impl TerminalApp {
             .unwrap_or_else(Instant::now);
         let mut dirty = true;
         let mut running = true;
+        let mut mouse_capture_enabled = false;
 
         while running {
             while let Ok(bytes) = session.output_rx.try_recv() {
                 vt.vt_write(&bytes);
                 dirty = true;
             }
+            sync_mouse_capture(&vt, &mut mouse_capture_enabled)?;
 
             if dirty {
                 let now = Instant::now();
@@ -320,6 +321,21 @@ impl TerminalApp {
 
         Ok(())
     }
+}
+
+fn sync_mouse_capture(vt: &Terminal<'_, '_>, enabled: &mut bool) -> Result<()> {
+    let should_enable = vt.is_mouse_tracking().unwrap_or(false);
+    if should_enable == *enabled {
+        return Ok(());
+    }
+
+    if should_enable {
+        execute!(io::stdout(), EnableMouseCapture)?;
+    } else {
+        execute!(io::stdout(), DisableMouseCapture)?;
+    }
+    *enabled = should_enable;
+    Ok(())
 }
 
 fn pty_rows(total_rows: u16) -> u16 {
@@ -845,11 +861,11 @@ impl PtySession {
         }
         builder.env(
             "TERM",
-            env::var("INSIGNIA_CHILD_TERM")
+            env::var("GLASSTERM_CHILD_TERM")
                 .or_else(|_| env::var("TERM"))
                 .unwrap_or_else(|_| "xterm-ghostty".to_string()),
         );
-        builder.env("INSIGNIA", "1");
+        builder.env("GLASSTERM", "1");
         if let Some(terminfo_dirs) = existing_terminfo_dirs() {
             builder.env("TERMINFO_DIRS", terminfo_dirs);
         }
@@ -868,7 +884,7 @@ impl PtySession {
         let (output_tx, output_rx) = mpsc::channel();
 
         thread::Builder::new()
-            .name("insignia-pty-reader".to_string())
+            .name("glassterm-pty-reader".to_string())
             .spawn(move || read_pty(reader, output_tx))
             .context("failed to spawn PTY reader")?;
 
@@ -917,7 +933,7 @@ struct ShellIntegration {
 
 impl ShellIntegration {
     fn new(command: &[String]) -> Result<Self> {
-        if env::var_os("INSIGNIA_DISABLE_SHELL_INTEGRATION").is_some() || command.len() != 1 {
+        if env::var_os("GLASSTERM_DISABLE_SHELL_INTEGRATION").is_some() || command.len() != 1 {
             return Ok(Self::default());
         }
 
@@ -1036,7 +1052,7 @@ fn temp_path(kind: &str) -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .map(|duration| duration.as_nanos())
         .unwrap_or_default();
-    env::temp_dir().join(format!("insignia-{kind}-{}-{nanos}", process::id()))
+    env::temp_dir().join(format!("glassterm-{kind}-{}-{nanos}", process::id()))
 }
 
 fn shell_integration_script(source_user_rc: bool) -> String {
@@ -1054,13 +1070,13 @@ fi
     }
     script.push_str(
         r#"
-__insignia_emit_pwd() {
+__glassterm_emit_pwd() {
   printf '\033]7;file://localhost%s\033\\' "$PWD"
 }
 cd() {
-  command cd "$@" && __insignia_emit_pwd
+  command cd "$@" && __glassterm_emit_pwd
 }
-__insignia_emit_pwd
+__glassterm_emit_pwd
 "#,
     );
     script
@@ -1508,8 +1524,8 @@ impl Default for Theme {
 
 impl Theme {
     fn query() -> Result<Self> {
-        if env::var_os("INSIGNIA_DISABLE_THEME_QUERY").is_some() {
-            info!("theme query disabled by INSIGNIA_DISABLE_THEME_QUERY");
+        if env::var_os("GLASSTERM_DISABLE_THEME_QUERY").is_some() {
+            info!("theme query disabled by GLASSTERM_DISABLE_THEME_QUERY");
             return Ok(Self::default());
         }
 
@@ -1538,8 +1554,8 @@ impl Theme {
             }
         };
 
-        if env::var_os("INSIGNIA_DISABLE_OSC_THEME_QUERY").is_some() {
-            info!("OSC theme query disabled by INSIGNIA_DISABLE_OSC_THEME_QUERY");
+        if env::var_os("GLASSTERM_DISABLE_OSC_THEME_QUERY").is_some() {
+            info!("OSC theme query disabled by GLASSTERM_DISABLE_OSC_THEME_QUERY");
         } else {
             match OpenOptions::new().read(true).write(true).open("/dev/tty") {
                 Ok(mut tty) => match send_color_queries(&mut tty) {
@@ -1572,7 +1588,7 @@ impl Theme {
         }
 
         let (appearance, appearance_source) = if let Some(appearance) = Appearance::from_env() {
-            (appearance, "INSIGNIA_GHOSTTY_APPEARANCE")
+            (appearance, "GLASSTERM_GHOSTTY_APPEARANCE")
         } else {
             match Appearance::from_macos() {
                 Ok(Some(appearance)) => (appearance, "macOS AppleInterfaceStyle"),
@@ -1747,7 +1763,7 @@ enum Appearance {
 
 impl Appearance {
     fn from_env() -> Option<Self> {
-        match env::var("INSIGNIA_GHOSTTY_APPEARANCE").ok()?.as_str() {
+        match env::var("GLASSTERM_GHOSTTY_APPEARANCE").ok()?.as_str() {
             "light" => Some(Self::Light),
             "dark" => Some(Self::Dark),
             _ => None,
@@ -2143,8 +2159,8 @@ struct StatusBar {
 
 impl StatusBar {
     fn new() -> Result<Self> {
-        let label = env::var("INSIGNIA_STATUS_LABEL").unwrap_or_else(|_| "insignia".to_string());
-        let cwd = env::var("INSIGNIA_STATUS_CWD").unwrap_or_else(|_| {
+        let label = env::var("GLASSTERM_STATUS_LABEL").unwrap_or_else(|_| "glassterm".to_string());
+        let cwd = env::var("GLASSTERM_STATUS_CWD").unwrap_or_else(|_| {
             env::current_dir()
                 .ok()
                 .map(|path| path.display().to_string())
@@ -2177,7 +2193,7 @@ impl StatusBar {
             cell.set_style(style);
         }
 
-        let time = env::var("INSIGNIA_TEST_TIME")
+        let time = env::var("GLASSTERM_TEST_TIME")
             .unwrap_or_else(|_| Local::now().format("%H:%M").to_string());
         let cwd = self.cwd.borrow();
         let text = format!(" {}  |  {}  |  {} ", self.label, cwd, time);
@@ -2186,10 +2202,10 @@ impl StatusBar {
 }
 
 fn status_style_from_env() -> Option<StatusStyle> {
-    let foreground = env::var("INSIGNIA_STATUS_FOREGROUND")
+    let foreground = env::var("GLASSTERM_STATUS_FOREGROUND")
         .ok()
         .and_then(|value| parse_hex_rgb(&value));
-    let background = env::var("INSIGNIA_STATUS_BACKGROUND")
+    let background = env::var("GLASSTERM_STATUS_BACKGROUND")
         .ok()
         .and_then(|value| parse_hex_rgb(&value));
 
@@ -2405,7 +2421,7 @@ mod tests {
 theme = light:Catppuccin Latte,dark:test
 background = #131313
 foreground = #ffffff
-background-image = /Users/heyglassy/.config/ghostty/backgrounds/insignia.png
+background-image = /Users/heyglassy/.config/ghostty/backgrounds/glassterm.png
 background-image-opacity = 0.08
 selection-background = #1f0f02
 selection-foreground = #f0d77d
@@ -2482,7 +2498,7 @@ palette = 15=#f7f7f7
         );
         assert_eq!(
             theme.background_image.as_deref(),
-            Some("/Users/heyglassy/.config/ghostty/backgrounds/insignia.png")
+            Some("/Users/heyglassy/.config/ghostty/backgrounds/glassterm.png")
         );
         assert_eq!(theme.background_image_opacity, Some(0.08));
     }
@@ -2524,7 +2540,7 @@ background = #eff1f5
 foreground = #4c4f69
 selection-foreground = #4c4f69
 selection-background = #acb0be
-background-image = /Users/heyglassy/.config/ghostty/backgrounds/insignia.png
+background-image = /Users/heyglassy/.config/ghostty/backgrounds/glassterm.png
 "#,
         );
 
@@ -2564,7 +2580,7 @@ background-image = /Users/heyglassy/.config/ghostty/backgrounds/insignia.png
         );
         assert_eq!(
             theme.background_image.as_deref(),
-            Some("/Users/heyglassy/.config/ghostty/backgrounds/insignia.png")
+            Some("/Users/heyglassy/.config/ghostty/backgrounds/glassterm.png")
         );
     }
 
@@ -2599,16 +2615,16 @@ selection-background = #acb0be
     #[test]
     fn display_pwd_decodes_file_uri_paths() {
         assert_eq!(
-            display_pwd("file://localhost/tmp/insignia%20project"),
-            "/tmp/insignia project"
+            display_pwd("file://localhost/tmp/glassterm%20project"),
+            "/tmp/glassterm project"
         );
         assert_eq!(
-            display_pwd("file://insignia/tmp/insignia%20project"),
-            "/tmp/insignia project"
+            display_pwd("file://glassterm/tmp/glassterm%20project"),
+            "/tmp/glassterm project"
         );
         assert_eq!(
-            display_pwd("file:///tmp/insignia%20project"),
-            "/tmp/insignia project"
+            display_pwd("file:///tmp/glassterm%20project"),
+            "/tmp/glassterm project"
         );
         assert_eq!(display_pwd("/tmp/plain"), "/tmp/plain");
     }
@@ -2616,8 +2632,8 @@ selection-background = #acb0be
     #[test]
     fn outer_terminal_pwd_sequence_forwards_osc7_file_uri() {
         assert_eq!(
-            outer_terminal_pwd_sequence("file://localhost/tmp/insignia%20project").as_deref(),
-            Some("\x1b]7;file://localhost/tmp/insignia%20project\x1b\\")
+            outer_terminal_pwd_sequence("file://localhost/tmp/glassterm%20project").as_deref(),
+            Some("\x1b]7;file://localhost/tmp/glassterm%20project\x1b\\")
         );
         assert_eq!(outer_terminal_pwd_sequence("/tmp/plain"), None);
         assert_eq!(

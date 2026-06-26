@@ -44,8 +44,8 @@
         source "$HOME/.bashrc.local"
       fi
 
-      if [[ -n "''${INSIGNIA:-}" ]]; then
-        export STARSHIP_CONFIG="$HOME/.config/starship-insignia.toml"
+      if [[ -n "''${GLASSTERM:-}" ]]; then
+        export STARSHIP_CONFIG="$HOME/.config/starship-glassterm.toml"
       fi
 
       eval "$(${pkgs.direnv}/bin/direnv hook bash)"
@@ -54,8 +54,8 @@
         eval "$(${pkgs.starship}/bin/starship init bash --print-full-init)"
       fi
 
-      if [[ -n "''${INSIGNIA:-}" ]]; then
-        __insignia_urlencode_pwd() {
+      if [[ -n "''${GLASSTERM:-}" ]]; then
+        __glassterm_urlencode_pwd() {
           local i ch encoded=""
           local LC_ALL=C
           for ((i = 0; i < ''${#PWD}; i++)); do
@@ -68,21 +68,21 @@
           printf '%s' "$encoded"
         }
 
-        __insignia_emit_osc7() {
+        __glassterm_emit_osc7() {
           local host="''${HOSTNAME:-}"
           if [[ -z "$host" ]]; then
             host="$(hostname 2>/dev/null || printf localhost)"
           fi
-          printf '\033]7;file://%s%s\033\\' "$host" "$(__insignia_urlencode_pwd)"
+          printf '\033]7;file://%s%s\033\\' "$host" "$(__glassterm_urlencode_pwd)"
         }
 
         if declare -p PROMPT_COMMAND >/dev/null 2>&1 &&
           [[ "$(declare -p PROMPT_COMMAND)" == declare\ -a* ]]; then
-          PROMPT_COMMAND+=(__insignia_emit_osc7)
+          PROMPT_COMMAND+=(__glassterm_emit_osc7)
         elif [[ -n "''${PROMPT_COMMAND:-}" ]]; then
-          PROMPT_COMMAND="''${PROMPT_COMMAND};__insignia_emit_osc7"
+          PROMPT_COMMAND="''${PROMPT_COMMAND};__glassterm_emit_osc7"
         else
-          PROMPT_COMMAND="__insignia_emit_osc7"
+          PROMPT_COMMAND="__glassterm_emit_osc7"
         fi
       fi
     '';

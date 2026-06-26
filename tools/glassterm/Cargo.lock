@@ -515,6 +515,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "glassterm"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "crossterm",
+ "libc",
+ "libghostty-vt",
+ "portable-pty",
+ "ratatui",
+ "tempfile",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "hashbrown"
 version = "0.16.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -585,23 +602,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "79cf5c93f93228cf8efb3ba362535fb11199ac548a09ce117c9b1adc3030d706"
 dependencies = [
  "rustversion",
-]
-
-[[package]]
-name = "insignia"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "crossterm",
- "libc",
- "libghostty-vt",
- "portable-pty",
- "ratatui",
- "tempfile",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
 ]
 
 [[package]]

@@ -1,4 +1,4 @@
-title = insignia
+title = glassterm
 
 font-family = Berkeley Mono
 font-codepoint-map = U+E400=Insigna Logo
