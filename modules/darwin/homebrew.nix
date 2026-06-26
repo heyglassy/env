@@ -36,6 +36,11 @@ let
     "linear"
   ];
 
+  eulogiaOnlyCasks = [
+    "karabiner-elements"
+    "legcord"
+  ];
+
   sharedLaptopMasApps = {
     "Things" = 904280696;
     "Ulysses" = 1225570693;
@@ -57,7 +62,7 @@ in
 
     onActivation = {
       autoUpdate = false;
-      cleanup = "zap";
+      cleanup = "none";
     };
 
     brews = [
@@ -112,7 +117,8 @@ in
 
     casks =
       (lib.optionals isSharedLaptop sharedLaptopCasks)
-      ++ (lib.optionals isInsignia insigniaOnlyCasks);
+      ++ (lib.optionals isInsignia insigniaOnlyCasks)
+      ++ (lib.optionals isEulogia eulogiaOnlyCasks);
 
     masApps = lib.optionalAttrs isSharedLaptop sharedLaptopMasApps;
   };

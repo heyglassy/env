@@ -1,6 +1,7 @@
 use std::{
     cell::RefCell,
     env,
+    ffi::OsString,
     fs::{self, OpenOptions},
     io::{self, Read, Write},
     os::fd::AsRawFd,
@@ -764,6 +765,24 @@ fn normalize_path(path: &Path) -> PathBuf {
     normalized
 }
 
+fn existing_terminfo_dirs() -> Option<String> {
+    existing_terminfo_dirs_from(env::var_os("TERMINFO_DIRS")?)
+}
+
+fn existing_terminfo_dirs_from(dirs: OsString) -> Option<String> {
+    let existing = env::split_paths(&dirs)
+        .filter(|path| path.is_dir())
+        .collect::<Vec<_>>();
+
+    if existing.is_empty() {
+        Some(String::new())
+    } else {
+        env::join_paths(existing)
+            .ok()
+            .map(|paths| paths.to_string_lossy().into_owned())
+    }
+}
+
 fn split_shell_words(input: &str) -> Option<Vec<String>> {
     let mut words = Vec::new();
     let mut current = String::new();
@@ -831,6 +850,9 @@ impl PtySession {
                 .unwrap_or_else(|_| "xterm-ghostty".to_string()),
         );
         builder.env("INSIGNIA", "1");
+        if let Some(terminfo_dirs) = existing_terminfo_dirs() {
+            builder.env("TERMINFO_DIRS", terminfo_dirs);
+        }
         for (key, value) in shell_integration.envs() {
             builder.env(key, value);
         }
@@ -2601,6 +2623,18 @@ selection-background = #acb0be
         assert_eq!(
             outer_terminal_pwd_sequence("file://localhost/tmp/\x1b]0;bad"),
             None
+        );
+    }
+
+    #[test]
+    fn terminfo_dirs_filter_drops_missing_entries() {
+        let existing = tempfile::tempdir().unwrap();
+        let missing = existing.path().join("missing");
+        let dirs = env::join_paths([missing.as_path(), existing.path()]).unwrap();
+
+        assert_eq!(
+            existing_terminfo_dirs_from(dirs),
+            Some(existing.path().to_string_lossy().into_owned())
         );
     }
 

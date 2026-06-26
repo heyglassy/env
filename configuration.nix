@@ -1,4 +1,4 @@
 {
-    hostName = "insignia";
-    userName = "heyglassy";
+    hostName = "eulogia";
+    userName = "eulogia";
 }

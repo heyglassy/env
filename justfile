@@ -18,6 +18,10 @@ switch target=host:
     sudo git config --global --add safe.directory "$PWD"
     sudo darwin-rebuild switch --flake .#{{target}}
 
+qs target=host:
+    just switch {{target}}
+    just kbd
+
 full-switch target=host:
     just switch {{target}}
     just post-switch
@@ -93,11 +97,17 @@ audit target=host:
     nix build .#npm-global-tools --no-link
     bunx tsc --noEmit
 
+test-terminal-status:
+    nix build .#terminal-status --no-link
+
+build-terminal-status:
+    nix build .#terminal-status --no-link
+
 test-insignia:
-    nix build .#insignia --no-link
+    nix build .#terminal-status --no-link
 
 build-insignia:
-    nix build .#insignia --no-link
+    nix build .#terminal-status --no-link
 
 raycast-import:
     mkdir -p "$HOME/.config/raycast-imports"

@@ -74,6 +74,7 @@
                 ./modules/home/apps/direnv.nix
                 ./modules/home/apps/fonts.nix
                 ./modules/home/apps/ghostty.nix
+                ./modules/home/apps/karabiner.nix
                 ./modules/home/apps/raycast.nix
                 ./modules/home/apps/rectangle.nix
                 ./modules/home/apps/starship.nix
@@ -84,14 +85,16 @@
 
       defaultSystem = "aarch64-darwin";
       defaultPkgs = mkPkgs defaultSystem;
+      terminalStatus = defaultPkgs.callPackage ./packages/insignia.nix {};
     in
     {
       darwinConfigurations =
         builtins.mapAttrs (_name: hostConfig: mkDarwinConfiguration hostConfig) hosts;
 
       packages.${defaultSystem} = {
-        default = self.darwinConfigurations.insignia.system;
-        insignia = defaultPkgs.callPackage ./packages/insignia.nix {};
+        default = self.darwinConfigurations.eulogia.system;
+        terminal-status = terminalStatus;
+        insignia = terminalStatus;
         npm-global-tools = defaultPkgs.callPackage ./packages/npm-global-tools.nix {};
       };
     };

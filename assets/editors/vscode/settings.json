@@ -3,7 +3,7 @@
   "workbench.activityBar.location": "hidden",
   "workbench.colorTheme": "GitHub Dark Dimmed",
   "workbench.preferredLightColorTheme": "GitHub Light",
-  "workbench.preferredDarkColorTheme": "Nord",
+  "workbench.preferredDarkColorTheme": "GitHub Dark Dimmed",
   "workbench.iconTheme": "material-icon-theme",
   "workbench.startupEditor": "none",
   "workbench.editor.empty.hint": "hidden",

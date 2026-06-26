@@ -2,7 +2,7 @@
 
 {
   system.keyboard.enableKeyMapping = true;
-  system.keyboard.swapLeftCtrlAndFn = true;
+  system.keyboard.swapLeftCtrlAndFn = false;
 
   system.defaults.NSGlobalDomain = {
     AppleICUForce24HourTime = true;
@@ -142,6 +142,35 @@
 
     "com.apple.symbolichotkeys" = {
       AppleSymbolicHotKeys = {
+        # macOS screenshot shortcuts. Disabled so CleanShot can own screenshot capture.
+        "28" = {
+          enabled = 0;
+          value = {
+            parameters = [ 51 20 1179648 ];
+            type = "standard";
+          };
+        };
+        "29" = {
+          enabled = 0;
+          value = {
+            parameters = [ 51 20 1441792 ];
+            type = "standard";
+          };
+        };
+        "30" = {
+          enabled = 0;
+          value = {
+            parameters = [ 52 21 1179648 ];
+            type = "standard";
+          };
+        };
+        "31" = {
+          enabled = 0;
+          value = {
+            parameters = [ 52 21 1441792 ];
+            type = "standard";
+          };
+        };
         # Spotlight search. Disabled so Raycast can own Command-Space.
         "64" = {
           enabled = 0;
@@ -155,6 +184,14 @@
           enabled = 0;
           value = {
             parameters = [ 65535 49 1572864 ];
+            type = "standard";
+          };
+        };
+        # Screenshot and recording options. Disabled so CleanShot can own screenshot capture.
+        "184" = {
+          enabled = 0;
+          value = {
+            parameters = [ 53 23 1179648 ];
             type = "standard";
           };
         };

@@ -6,9 +6,10 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 install_extensions() {
   local cli="$1"
   local extension_file="$2"
+  local editor_name="$3"
 
   if [ ! -x "$cli" ]; then
-    echo "Editor CLI not found at $cli; skipping $(basename "$(dirname "$extension_file")") extensions"
+    echo "Editor CLI not found for $editor_name; skipping $(basename "$(dirname "$extension_file")") extensions"
     return
   fi
 
@@ -26,10 +27,39 @@ install_extensions() {
   done < "$extension_file"
 }
 
-install_extensions \
-  "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" \
-  "$repo_root/assets/editors/vscode/extensions.txt"
+resolve_cli() {
+  local command_name="$1"
+  shift
+
+  local cli
+  cli="$(command -v "$command_name" 2>/dev/null || true)"
+  if [ -n "$cli" ] && [ -x "$cli" ]; then
+    printf '%s\n' "$cli"
+    return
+  fi
+
+  for cli in "$@"; do
+    if [ -x "$cli" ]; then
+      printf '%s\n' "$cli"
+      return
+    fi
+  done
+
+  return 1
+}
 
 install_extensions \
-  "/Applications/Cursor.app/Contents/Resources/app/bin/cursor" \
-  "$repo_root/assets/editors/cursor/extensions.txt"
+  "$(resolve_cli code \
+    "$HOME/Applications/Home Manager Apps/Visual Studio Code.app/Contents/Resources/app/bin/code" \
+    "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code" \
+    || true)" \
+  "$repo_root/assets/editors/vscode/extensions.txt" \
+  "VS Code"
+
+install_extensions \
+  "$(resolve_cli cursor \
+    "$HOME/Applications/Home Manager Apps/Cursor.app/Contents/Resources/app/bin/cursor" \
+    "/Applications/Cursor.app/Contents/Resources/app/bin/cursor" \
+    || true)" \
+  "$repo_root/assets/editors/cursor/extensions.txt" \
+  "Cursor"

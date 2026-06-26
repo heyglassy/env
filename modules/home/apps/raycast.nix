@@ -44,6 +44,19 @@
     /usr/bin/defaults write com.raycast.macos onboarding_setupAlias -bool true
   '';
 
+  home.activation.restartRaycastAfterHotkeyConfig = lib.hm.dag.entryAfter [ "configureRaycastHotkey" ] ''
+    /usr/bin/pkill -x Raycast 2>/dev/null || true
+
+    for attempt in 1 2 3 4 5; do
+      if ! /usr/bin/pgrep -x Raycast >/dev/null 2>&1; then
+        break
+      fi
+      /bin/sleep 0.1
+    done
+
+    /usr/bin/open -a "Raycast" 2>/dev/null || true
+  '';
+
   home.activation.prepareRaycastImport = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     import_dir="$HOME/.config/raycast-imports"
     /bin/mkdir -p "$import_dir"
