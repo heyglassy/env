@@ -7,6 +7,7 @@
   system.defaults.NSGlobalDomain = {
     AppleICUForce24HourTime = true;
     AppleInterfaceStyle = "Dark";
+    AppleInterfaceStyleSwitchesAutomatically = false;
     AppleShowAllExtensions = true;
     AppleShowScrollBars = "Always";
     AppleSpacesSwitchOnActivate = false;
