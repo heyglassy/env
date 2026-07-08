@@ -8,6 +8,57 @@ use libghostty_vt::{
 };
 use ratatui::layout::Rect;
 
+/// Tracks whether a Super/Cmd (or Meta) modifier key is currently held down,
+/// derived from Kitty keyboard-protocol press/release events.
+///
+/// SGR mouse reporting (mode 1006) encodes only Shift, Alt/Meta and Ctrl — the
+/// protocol has no Super/Cmd bit — so crossterm can never set
+/// `KeyModifiers::SUPER` on a `MouseEvent`. To recognize a Cmd+left-click we
+/// instead remember the Super key's held state from keyboard events, which the
+/// Kitty keyboard protocol *does* report (including releases, since glassterm
+/// pushes REPORT_EVENT_TYPES + REPORT_ALL_KEYS_AS_ESCAPE_CODES).
+#[derive(Debug, Default)]
+pub(crate) struct SuperKeyState {
+    held: bool,
+}
+
+impl SuperKeyState {
+    /// Whether a Super/Cmd/Meta key is currently held.
+    pub(crate) fn is_held(&self) -> bool {
+        self.held
+    }
+
+    /// Update held state from a keyboard event. Returns true when the event was
+    /// a Super/Meta modifier key press/release (informational; the event is
+    /// still forwarded to the child by the caller — unchanged behavior).
+    pub(crate) fn handle_key(&mut self, key: KeyEvent) -> bool {
+        let is_super = matches!(
+            key.code,
+            KeyCode::Modifier(
+                ModifierKeyCode::LeftSuper
+                    | ModifierKeyCode::RightSuper
+                    | ModifierKeyCode::LeftMeta
+                    | ModifierKeyCode::RightMeta
+            )
+        );
+        if !is_super {
+            return false;
+        }
+        match key.kind {
+            KeyEventKind::Press | KeyEventKind::Repeat => self.held = true,
+            KeyEventKind::Release => self.held = false,
+        }
+        true
+    }
+
+    /// Clear the held state. Must be called on both focus loss and focus gain:
+    /// when focus leaves while Super is held (e.g. Cmd+Tab away) the release
+    /// event never arrives, so stale held-state would otherwise persist.
+    pub(crate) fn clear(&mut self) {
+        self.held = false;
+    }
+}
+
 pub(crate) fn encode_key_event(
     encoder: &mut ghostty_key::Encoder<'_>,
     vt: &Terminal<'_, '_>,
@@ -374,6 +425,58 @@ pub(crate) fn encode_focus_event(event: ghostty_focus::Event) -> Result<Vec<u8>>
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    fn modifier_key(modifier: ModifierKeyCode, kind: KeyEventKind) -> KeyEvent {
+        KeyEvent::new_with_kind(KeyCode::Modifier(modifier), KeyModifiers::SUPER, kind)
+    }
+
+    #[test]
+    fn super_state_tracks_press_and_release() {
+        let mut state = SuperKeyState::default();
+        assert!(!state.is_held());
+
+        assert!(state.handle_key(modifier_key(ModifierKeyCode::LeftSuper, KeyEventKind::Press)));
+        assert!(state.is_held());
+
+        assert!(state.handle_key(modifier_key(ModifierKeyCode::LeftSuper, KeyEventKind::Release)));
+        assert!(!state.is_held());
+    }
+
+    #[test]
+    fn super_state_tracks_meta_and_right_variants() {
+        let mut state = SuperKeyState::default();
+        assert!(state.handle_key(modifier_key(ModifierKeyCode::LeftMeta, KeyEventKind::Press)));
+        assert!(state.is_held());
+        assert!(state.handle_key(modifier_key(ModifierKeyCode::RightSuper, KeyEventKind::Release)));
+        assert!(!state.is_held());
+    }
+
+    #[test]
+    fn super_state_ignores_non_super_keys() {
+        let mut state = SuperKeyState::default();
+        let other = KeyEvent::new_with_kind(
+            KeyCode::Char('a'),
+            KeyModifiers::empty(),
+            KeyEventKind::Press,
+        );
+        assert!(!state.handle_key(other));
+        assert!(!state.is_held());
+
+        // A non-super key press must not disturb a genuine held state either.
+        state.handle_key(modifier_key(ModifierKeyCode::LeftSuper, KeyEventKind::Press));
+        assert!(!state.handle_key(other));
+        assert!(state.is_held());
+    }
+
+    #[test]
+    fn super_state_clear_resets_held() {
+        let mut state = SuperKeyState::default();
+        state.handle_key(modifier_key(ModifierKeyCode::LeftSuper, KeyEventKind::Press));
+        assert!(state.is_held());
+        // Focus change: the release event never arrives, so clear() must reset.
+        state.clear();
+        assert!(!state.is_held());
+    }
 
     #[test]
     fn shifted_character_keys_map_to_physical_base_key() {

@@ -1,7 +1,7 @@
 use std::{
     fs,
     io::{Read, Write},
-    path::PathBuf,
+    path::{Path, PathBuf},
     sync::mpsc,
     thread,
     time::{Duration, Instant},
@@ -50,8 +50,137 @@ fn draws_pty_content_and_bottom_status_bar() {
     harness.send(b"\x11");
 }
 
+#[test]
+fn resize_churn_repaints_full_status_bar() {
+    let bin = env!("CARGO_BIN_EXE_glassterm");
+    let shell = test_shell();
+    // Label is deliberately distinct from the cwd so a "no stale bar above"
+    // check on the label cannot false-match cwd text.
+    let mut harness = TerminalHarness::spawn(
+        bin,
+        &["--", &shell, "-lc", "printf 'ready from pty'; sleep 30"],
+        &[
+            ("GLASSTERM_DISABLE_THEME_QUERY", "1"),
+            ("GLASSTERM_TEST_TIME", "19:17"),
+            ("GLASSTERM_STATUS_LABEL", "eulogia"),
+            ("GLASSTERM_STATUS_CWD", "/private/tmp/work"),
+        ],
+    );
+
+    let expected = "eulogia  |  /private/tmp/work  |  19:17";
+
+    let snapshot = harness.wait_for_text("ready from pty", Duration::from_secs(5));
+    assert_eq!(
+        snapshot.line(ROWS - 1).trim(),
+        expected,
+        "baseline status bar not drawn on bottom row:\n{}",
+        snapshot.text()
+    );
+
+    // Transient host churn: ROWS -> ROWS-1 -> ROWS, delivered back to back so
+    // both SIGWINCHes land well within one glassterm frame (FRAME_TIME = 16ms)
+    // and the net size is unchanged. This mirrors a window being restored at
+    // terminal restart: the host shifts screen content by a row, but glassterm's
+    // fullscreen autoresize sees an unchanged size and never clears/full-repaints.
+    harness.resize(COLS, ROWS - 1);
+    harness.resize(COLS, ROWS);
+
+    // Let glassterm react and redraw, draining its output into the vt.
+    let snapshot = harness.pump(Duration::from_millis(400));
+    snapshot.record("resize_churn_status_bar");
+
+    assert_eq!(
+        snapshot.line(ROWS - 1).trim(),
+        expected,
+        "bottom row must show the complete status bar after resize churn:\n{}",
+        snapshot.text()
+    );
+
+    for row in 0..ROWS - 1 {
+        assert!(
+            !snapshot.line(row).contains("eulogia"),
+            "stale status bar found on row {row} after resize churn:\n{}",
+            snapshot.text()
+        );
+    }
+
+    harness.send(b"\x11");
+}
+
 fn test_shell() -> String {
     std::env::var("GLASSTERM_TEST_SHELL").unwrap_or_else(|_| "/bin/sh".to_string())
+}
+
+fn wait_for_file_contains(path: &Path, needle: &str, timeout: Duration) -> bool {
+    let started = Instant::now();
+    while started.elapsed() < timeout {
+        if let Ok(contents) = fs::read_to_string(path)
+            && contents.contains(needle)
+        {
+            return true;
+        }
+        thread::sleep(Duration::from_millis(25));
+    }
+    false
+}
+
+/// Cmd+left-click on a URL opens it. As it reaches glassterm, a macOS Cmd+click
+/// is a Kitty-protocol Super keydown (CSI u) plus a plain SGR mouse report with
+/// no Super bit (Ghostty strips it — the SGR protocol has no Super bit, and
+/// glassterm always presents mouse-reporting-on to Ghostty). glassterm must
+/// recognize the click via its keyboard-derived Super-held state.
+#[test]
+fn cmd_click_opens_url_under_pointer() {
+    let bin = env!("CARGO_BIN_EXE_glassterm");
+    let shell = test_shell();
+
+    let mut open_url_file = PathBuf::from(env!("CARGO_TARGET_TMPDIR"));
+    open_url_file.push("cmd_click_opened_urls.txt");
+    let _ = fs::remove_file(&open_url_file);
+    let open_url_file_str = open_url_file.to_str().expect("utf8 path");
+
+    let mut harness = TerminalHarness::spawn(
+        bin,
+        &[
+            "--",
+            &shell,
+            "-lc",
+            "printf 'open https://example.test/path '; sleep 30",
+        ],
+        &[
+            ("GLASSTERM_DISABLE_THEME_QUERY", "1"),
+            ("GLASSTERM_TEST_TIME", "19:17"),
+            ("GLASSTERM_TEST_OPEN_URL_FILE", open_url_file_str),
+        ],
+    );
+
+    let snapshot = harness.wait_for_text("https://example.test/path", Duration::from_secs(5));
+    assert!(
+        snapshot.text().contains("https://example.test/path"),
+        "child URL not visible before click:\n{}",
+        snapshot.text()
+    );
+
+    // "open " occupies columns 1..=5, so the URL begins at 1-based column 6;
+    // SGR column 10 (0-based 9) lands inside the URL. Row 1 is the top viewport
+    // row where the child printed.
+    harness.write_input(b"\x1b[57444;9:1u"); // LeftSuper press (Kitty CSI u)
+    harness.write_input(b"\x1b[<0;10;1M"); // left button down at col 10, row 1
+    harness.write_input(b"\x1b[<0;10;1m"); // left button up
+    harness.write_input(b"\x1b[57444;9:3u"); // LeftSuper release (Kitty CSI u)
+
+    let opened = wait_for_file_contains(
+        &open_url_file,
+        "https://example.test/path",
+        Duration::from_secs(3),
+    );
+    assert!(
+        opened,
+        "Cmd+click did not open the URL; file contents: {:?}",
+        fs::read_to_string(&open_url_file).ok()
+    );
+
+    harness.send(b"\x11");
 }
 
 #[test]
@@ -85,7 +214,7 @@ fn osc7_updates_bottom_status_cwd() {
 }
 
 struct TerminalHarness {
-    _master: Box<dyn portable_pty::MasterPty + Send>,
+    master: Box<dyn portable_pty::MasterPty + Send>,
     writer: Box<dyn Write + Send>,
     child: Box<dyn portable_pty::Child + Send + Sync>,
     output_rx: mpsc::Receiver<Vec<u8>>,
@@ -137,7 +266,7 @@ impl TerminalHarness {
             .expect("spawn pty reader");
 
         Self {
-            _master: pair.master,
+            master: pair.master,
             writer,
             child,
             output_rx,
@@ -173,11 +302,50 @@ impl TerminalHarness {
         TerminalSnapshot::from_vt(&mut self.vt, COLS, ROWS)
     }
 
+    /// Resize the master pty (delivers SIGWINCH to glassterm) and mirror the
+    /// same resize onto our vt, which emulates the host terminal's outer-screen
+    /// reflow/scroll behavior.
+    fn resize(&mut self, cols: u16, rows: u16) {
+        self.master
+            .resize(PtySize {
+                rows,
+                cols,
+                pixel_width: 0,
+                pixel_height: 0,
+            })
+            .expect("resize pty");
+        self.vt.resize(cols, rows, 0, 0).expect("resize vt");
+    }
+
+    /// Drain glassterm output into the vt for the given duration, then snapshot.
+    fn pump(&mut self, duration: Duration) -> TerminalSnapshot {
+        let started = Instant::now();
+        while started.elapsed() < duration {
+            let remaining = duration.saturating_sub(started.elapsed());
+            match self
+                .output_rx
+                .recv_timeout(remaining.min(Duration::from_millis(20)))
+            {
+                Ok(bytes) => self.vt.vt_write(&bytes),
+                Err(mpsc::RecvTimeoutError::Timeout) => {}
+                Err(mpsc::RecvTimeoutError::Disconnected) => break,
+            }
+        }
+        TerminalSnapshot::from_vt(&mut self.vt, COLS, ROWS)
+    }
+
     fn send(&mut self, bytes: &[u8]) {
         self.writer.write_all(bytes).expect("write input");
         self.writer.flush().expect("flush input");
         thread::sleep(Duration::from_millis(50));
         let _ = self.child.kill();
+    }
+
+    /// Write bytes to glassterm's stdin without killing the child, so a test can
+    /// drive input and then keep observing glassterm's behavior.
+    fn write_input(&mut self, bytes: &[u8]) {
+        self.writer.write_all(bytes).expect("write input");
+        self.writer.flush().expect("flush input");
     }
 }
 

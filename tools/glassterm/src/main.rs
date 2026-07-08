@@ -44,7 +44,9 @@ use tracing_appender::non_blocking::WorkerGuard;
 use crate::{
     clipboard::write_clipboard,
     config::Config,
-    input::{encode_focus_event, encode_key_event, encode_mouse_event, encode_paste},
+    input::{
+        SuperKeyState, encode_focus_event, encode_key_event, encode_mouse_event, encode_paste,
+    },
     pty::PtySession,
     render::{GhosttyRenderer, mouse_to_cell},
     search::SearchState,
@@ -236,6 +238,10 @@ impl TerminalApp {
         let mut hover_dirty = true;
         let mut running = true;
         let mut suppress_url_click_until_up = false;
+        // SGR mouse reports carry no Super/Cmd bit, so Cmd+click arrives as a
+        // plain left-click. Track Super's held state from Kitty keyboard events
+        // instead and consult it when classifying clicks (see SuperKeyState).
+        let mut super_key = SuperKeyState::default();
 
         while running {
             let mut got_output = false;
@@ -293,6 +299,11 @@ impl TerminalApp {
             if event::poll(poll_timeout)? {
                 match event::read()? {
                     Event::Key(key) => {
+                        // Keep the Super-held tracker current for every key event
+                        // (the Super keypress itself is still forwarded to the
+                        // child below, unchanged).
+                        super_key.handle_key(key);
+
                         if should_quit(key) {
                             break;
                         }
@@ -363,7 +374,11 @@ impl TerminalApp {
                             }
                             continue;
                         }
-                        let cmd_left = mouse.modifiers.contains(KeyModifiers::SUPER)
+                        // The SUPER modifier flag is never set on SGR mouse
+                        // reports (the protocol lacks a Super bit), so fall back
+                        // to the keyboard-derived held state for Cmd+click.
+                        let cmd_left = (mouse.modifiers.contains(KeyModifiers::SUPER)
+                            || super_key.is_held())
                             && is_left_button_event(mouse.kind);
                         if cmd_left && matches!(mouse.kind, MouseEventKind::Down(MouseButton::Left))
                         {
@@ -419,17 +434,35 @@ impl TerminalApp {
                         session.write_all(&encode_paste(&text, bracketed))?;
                     }
                     Event::FocusGained => {
+                        // A release for a held Super may never arrive across a
+                        // focus change (e.g. Cmd+Tab away), so drop stale state.
+                        super_key.clear();
                         if vt.mode(Mode::FOCUS_EVENT).unwrap_or(false) {
                             session
                                 .write_all(&encode_focus_event(ghostty_focus::Event::Gained)?)?;
                         }
                     }
                     Event::FocusLost => {
+                        super_key.clear();
                         if vt.mode(Mode::FOCUS_EVENT).unwrap_or(false) {
                             session.write_all(&encode_focus_event(ghostty_focus::Event::Lost)?)?;
                         }
                     }
                     Event::Resize(cols, rows) => {
+                        // crossterm/ratatui cannot observe host-screen content
+                        // shifts, and a transient A -> B -> A resize (common when
+                        // a window is restored at terminal restart) leaves
+                        // ratatui's last-known size unchanged, so its fullscreen
+                        // autoresize never clears. Meanwhile the host terminal has
+                        // scrolled our primary-screen content by a row, leaving a
+                        // stale status bar behind. Force a full resync on every
+                        // resize event: Terminal::resize clears the backend and
+                        // resets the back buffer, so the next draw repaints every
+                        // cell. (We deliberately avoid Terminal::clear here: it
+                        // issues a blocking DSR cursor-position query that would
+                        // stall the event loop waiting on the host to answer.)
+                        let area = terminal.size()?.into();
+                        terminal.resize(area)?;
                         let rows = pty_rows(rows);
                         session.resize(cols, rows)?;
                         vt.resize(cols, rows, 0, 0)?;

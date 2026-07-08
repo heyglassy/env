@@ -57,8 +57,29 @@ pub(crate) fn url_at_viewport_cell(vt: &Terminal<'_, '_>, cell: CellPos) -> Opti
     osc8_url_at_cell(vt, cell).or_else(|| text_url_at_cell(vt, cell))
 }
 
-/// Spawn macOS `open <url>` away from the event loop.
+/// Open a URL. Normally spawns macOS `open <url>` away from the event loop.
+///
+/// Test seam: if `GLASSTERM_TEST_OPEN_URL_FILE` is set, the URL is appended
+/// (one per line) to that file instead of spawning `open`, so integration
+/// tests can observe which URLs a click resolved without launching a browser.
 pub(crate) fn open_url(url: &str) {
+    if let Some(path) = std::env::var_os("GLASSTERM_TEST_OPEN_URL_FILE") {
+        use std::io::Write as _;
+        match std::fs::OpenOptions::new()
+            .create(true)
+            .append(true)
+            .open(&path)
+        {
+            Ok(mut file) => {
+                if let Err(error) = writeln!(file, "{url}") {
+                    warn!(%error, url, "failed to record test url");
+                }
+            }
+            Err(error) => warn!(%error, url, "failed to open test url file"),
+        }
+        return;
+    }
+
     let url = url.to_string();
     let spawn = thread::Builder::new()
         .name("glassterm-open-url".to_string())
